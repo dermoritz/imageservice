@@ -9,8 +9,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -37,7 +39,9 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private Random random = new Random();
 
-    private ExecutorService exec = Executors.newSingleThreadExecutor();
+    ExecutorService exec = Executors.newSingleThreadExecutor();
+
+    private Future<Void> currentTask;
 
     @Inject
     private ImageFromFolder(@Folder File folder, Logger log) {
@@ -65,32 +69,10 @@ public class ImageFromFolder implements ImageProvider, Processor {
     }
 
     private void fetchAllFiles() {
-        if (((ThreadPoolExecutor) exec).getActiveCount() < 1) {
-            exec.submit(() -> {
-                Stopwatch stopwatch = Stopwatch.createStarted();
-                files.clear();
-                try {
-                    Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
-
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                            if (!attrs.isDirectory() && file.getFileName().toString().endsWith("jpg")) {
-                                files.add(file);
-                            }
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                    });
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Problem reading folder: ", e);
-                }
-                stopwatch.stop();
-                log.info(files.size() + " files found. Walking the folder tree took "
-                         + stopwatch.elapsed(TimeUnit.SECONDS)
-                         + "s.");
-            });
-        } else {
-            log.info("Rejected update of files, old task still running");
+        if (currentTask == null || currentTask.isDone() || currentTask.isCancelled()) {
+            currentTask = exec.submit(new FetchFilesTask());
+        } else{
+            log.info("Reject to update files, previous update not finished yet.");
         }
     }
 
@@ -98,4 +80,35 @@ public class ImageFromFolder implements ImageProvider, Processor {
     public void process(Exchange exchange) throws Exception {
         fetchAllFiles();
     }
+
+    private class FetchFilesTask implements Callable<Void> {
+
+        @Override
+        public Void call() throws Exception {
+            Stopwatch stopwatch = Stopwatch.createStarted();
+            files.clear();
+            try {
+                Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (!attrs.isDirectory() && file.getFileName().toString().endsWith("jpg")) {
+                            files.add(file);
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                });
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Problem reading folder: ", e);
+            }
+            stopwatch.stop();
+            log.info(files.size() + " files found. Walking the folder tree took "
+                     + stopwatch.elapsed(TimeUnit.SECONDS)
+                     + "s.");
+            return null;
+        }
+
+    }
+
 }
