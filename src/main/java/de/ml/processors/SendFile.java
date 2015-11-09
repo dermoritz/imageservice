@@ -13,6 +13,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 import de.ml.image.ImageProvider;
+import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.processors.SendFile.SendFileProc;
 
 @SendFileProc
@@ -22,7 +23,7 @@ public class SendFile implements Processor {
     private ImageProvider ip;
 
     @Inject
-    private SendFile(ImageProvider ip) {
+    private SendFile(@ImageProviderImpl ImageProvider ip) {
         this.ip = ip;
     }
 
