@@ -54,6 +54,7 @@ public class Boot {
     }
 
     public void stop(@Observes ContainerShutdown event) throws Exception {
+        log.info("starting");
         main.stop();
     }
 
