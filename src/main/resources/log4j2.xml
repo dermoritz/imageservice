@@ -2,10 +2,10 @@
 <configuration status="OFF">
     <appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%30.30t] %-30.30c{1} %-5p %m%n" />
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
         </Console>
         <File name="File" fileName="logs/output.log">
-            <PatternLayout pattern="[%30.30t] %-30.30c{1} %-5p %m%n" />
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
         </File>
     </appenders>
     <Loggers>
