@@ -12,7 +12,7 @@ public interface ImageProvider {
     /**
      * Returns file with given string somewhere in path or file name.
      * @param inName part of path or file name
-     * @return random image with given string in path or name
+     * @return random image with given string in path or name or null
      */
     File getWithName(String inName);
 }

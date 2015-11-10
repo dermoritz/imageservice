@@ -163,7 +163,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
     @Override
     public File getWithName(String inName) {
         try {
-            return getRandomOf(cache.get(inName, () -> getFilesWithNameContains(inName))).toFile();
+            Path file = getRandomOf(cache.get(inName, () -> getFilesWithNameContains(inName)));
+            return file == null ? null : file.toFile();
         } catch (ExecutionException e) {
             throw new IllegalStateException("Problem on loading list from cache: ", e);
         }

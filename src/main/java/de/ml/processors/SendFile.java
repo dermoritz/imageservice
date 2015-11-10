@@ -33,7 +33,7 @@ public class SendFile implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        String inName = exchange.getIn().getHeader(RestRoute.HEADER_PARAMETER, String.class);
+        String inName = exchange.getIn().getHeader(RestRoute.HEADER_NAME_PARAMETER, String.class);
         File random;
         if (Strings.isNullOrEmpty(inName)) {
             random = ip.getRandom();
