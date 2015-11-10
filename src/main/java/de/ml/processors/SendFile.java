@@ -13,15 +13,16 @@ import javax.inject.Qualifier;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
+import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
+import de.ml.routes.RestRoute;
 
 @SendFileProc
 public class SendFile implements Processor {
-
 
     private ImageProvider ip;
 
@@ -30,20 +31,26 @@ public class SendFile implements Processor {
         this.ip = ip;
     }
 
-
     @Override
     public void process(Exchange exchange) throws Exception {
-        File random = ip.getRandom();
-        if(random!=null){
+        String inName = exchange.getIn().getHeader(RestRoute.HEADER_PARAMETER, String.class);
+        File random;
+        if (Strings.isNullOrEmpty(inName)) {
+            random = ip.getRandom();
+        }else{
+            random = ip.getWithName(inName);
+        }
+        if (random != null) {
             String mediaType = Files.probeContentType(random.toPath());
             exchange.getIn().setHeader(Exchange.CONTENT_TYPE, mediaType);
             exchange.getIn().setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-            exchange.getIn().setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""+random.getName()+"\"");
+            exchange.getIn().setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                                       "inline; filename=\"" + random.getName() + "\"");
             exchange.getIn().setHeader(HttpHeaders.PRAGMA, "no-cache");
             exchange.getIn().setHeader(HttpHeaders.EXPIRES, "0");
             exchange.getIn().setBody(random);
 
-        } else{
+        } else {
             exchange.getIn().setBody("Got no image :-(, maybe try later...");
         }
     }

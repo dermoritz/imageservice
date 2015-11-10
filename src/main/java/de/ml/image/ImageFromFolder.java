@@ -11,9 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +31,10 @@ import org.apache.camel.builder.ThreadPoolBuilder;
 import org.slf4j.Logger;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 import de.ml.boot.ArgsConfiguration.Folder;
@@ -50,6 +56,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private Future<Void> currentTask;
 
+    private Cache<String, List<Path>> cache;
+
     @Inject
     private ImageFromFolder(@Folder File folder, Logger log, CamelContext context) {
         this.folder = folder;
@@ -59,15 +67,24 @@ public class ImageFromFolder implements ImageProvider, Processor {
         } catch (Exception e) {
             throw new IllegalStateException("Problem on creating executor: ", e);
         }
+        setupCache();
         fetchAllFiles();
+    }
+
+    private void setupCache() {
+        cache = CacheBuilder.newBuilder().build();
     }
 
     @Override
     public File getRandom() {
-        if (files.size() > 0) {
-            int index = random.nextInt(files.size());
-            File file = files.get(index).toFile();
-            if (file.canRead()) {
+        return getRandomOf(files).toFile();
+    }
+
+    private Path getRandomOf(List<Path> list) {
+        if (list.size() > 0) {
+            int index = random.nextInt(list.size());
+            Path file = list.get(index);
+            if (file.toFile().canRead()) {
                 return file;
             } else {
                 log.info("File " + file + " not found updating list...");
@@ -99,6 +116,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         public Void call() throws Exception {
             log.info("Starting file update...");
             Stopwatch stopwatch = Stopwatch.createStarted();
+            cache.invalidateAll();
             files.clear();
             try {
                 Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
@@ -124,10 +142,30 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     }
 
+    private List<Path> getFilesWithNameContains(String inName) {
+        log.info("fetching files with " + inName + " in path...");
+        ArrayList<Path> result = Lists.newArrayList();
+        for (Path path : files) {
+            if (path.toString().toLowerCase().contains(inName.toLowerCase())) {
+                result.add(path);
+            }
+        }
+        return result;
+    }
+
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE})
     public @interface ImageProviderImpl {
 
+    }
+
+    @Override
+    public File getWithName(String inName) {
+        try {
+            return getRandomOf(cache.get(inName, () -> getFilesWithNameContains(inName))).toFile();
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Problem on loading list from cache: ", e);
+        }
     }
 }
