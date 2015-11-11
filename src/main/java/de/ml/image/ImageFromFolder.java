@@ -107,7 +107,13 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
+        int oldFileCount = files.size();
         fetchAllFiles();
+        //wait for result
+        currentTask.get();
+        String message = "Update yielded " + (files.size()-oldFileCount) + " files.";
+        log.info(message);
+        exchange.getIn().setBody(message);
     }
 
     private class FetchFilesTask implements Callable<Void> {
