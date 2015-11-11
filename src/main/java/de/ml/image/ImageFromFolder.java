@@ -13,6 +13,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -33,9 +34,8 @@ import org.slf4j.Logger;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import de.ml.boot.ArgsConfiguration.Folder;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
@@ -44,7 +44,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 @ImageProviderImpl
 public class ImageFromFolder implements ImageProvider, Processor {
 
-    private File folder;
+    private List<File> folders;
 
     private volatile List<Path> files = Lists.newArrayList();
 
@@ -54,16 +54,16 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private ExecutorService exec;
 
-    private Future<Void> currentTask;
+    private Map<File,Future<Void>> currentTasks = Maps.newHashMap();
 
     private Cache<String, List<Path>> cache;
 
     @Inject
-    private ImageFromFolder(@Folder File folder, Logger log, CamelContext context) {
-        this.folder = folder;
+    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context) {
+        this.folders = folders;
         this.log = log;
         try {
-            exec = new ThreadPoolBuilder(context).poolSize(1).maxPoolSize(1).build("fetch files");
+            exec = new ThreadPoolBuilder(context).poolSize(1).maxPoolSize(folders.size()).build("fetch files");
         } catch (Exception e) {
             throw new IllegalStateException("Problem on creating executor: ", e);
         }
@@ -87,21 +87,25 @@ public class ImageFromFolder implements ImageProvider, Processor {
             if (file.toFile().canRead()) {
                 return file;
             } else {
-                log.info("File " + file + " not found updating list...");
-                fetchAllFiles();
+                log.info("File " + file + " not found.");
                 return null;
             }
         } else {
-            fetchAllFiles();
             return null;
         }
     }
 
     private void fetchAllFiles() {
-        if (currentTask == null || currentTask.isDone() || currentTask.isCancelled()) {
-            currentTask = exec.submit(new FetchFilesTask());
-        } else {
-            log.info("Reject to update files, previous update not finished yet.");
+        files.clear();
+        cache.invalidateAll();
+        for (File folder : folders) {
+            Future<Void> currentTask = currentTasks.get(folder);
+            if (currentTask == null || currentTask.isDone() || currentTask.isCancelled()) {
+                currentTask = exec.submit(new FetchFilesTask(folder));
+                currentTasks.put(folder, currentTask);
+            } else {
+                log.info("Reject to update folder "+folder +", previous update not finished yet.");
+            }
         }
     }
 
@@ -110,26 +114,40 @@ public class ImageFromFolder implements ImageProvider, Processor {
         int oldFileCount = files.size();
         fetchAllFiles();
         //wait for result
-        currentTask.get();
+        waitUntilFinished();
         String message = "Update yielded " + (files.size()-oldFileCount) + " files.";
         log.info(message);
         exchange.getIn().setBody(message);
     }
 
+    private void waitUntilFinished() {
+        for (Future<Void> task : currentTasks.values()) {
+            try {
+                task.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new IllegalStateException("Problem on waiting for file tasks: ",e);
+            }
+        }
+    }
+
     private class FetchFilesTask implements Callable<Void> {
+
+        private File folder;
+
+        private FetchFilesTask(File folder){
+            this.folder = folder;
+        }
 
         @Override
         public Void call() throws Exception {
-            log.info("Starting file update...");
+            log.info("Starting file update on " +  folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
-            cache.invalidateAll();
-            files.clear();
             try {
                 Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
 
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!attrs.isDirectory() && file.getFileName().toString().endsWith("jpg")) {
+                        if (!attrs.isDirectory() && file.getFileName().toString().toLowerCase().endsWith("jpg")) {
                             files.add(file);
                         }
                         return FileVisitResult.CONTINUE;
@@ -140,17 +158,58 @@ public class ImageFromFolder implements ImageProvider, Processor {
                 throw new IllegalArgumentException("Problem reading folder: ", e);
             }
             stopwatch.stop();
-            log.info("... " + files.size() + " files found. Walking the folder tree took "
+            log.info("... " + files.size() + " files found in " + folder + " in "
                      + stopwatch.elapsed(TimeUnit.SECONDS)
                      + "s.");
             return null;
         }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((folder == null) ? 0 : folder.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof FetchFilesTask)) {
+                return false;
+            }
+            FetchFilesTask other = (FetchFilesTask) obj;
+            if (!getOuterType().equals(other.getOuterType())) {
+                return false;
+            }
+            if (folder == null) {
+                if (other.folder != null) {
+                    return false;
+                }
+            } else if (!folder.equals(other.folder)) {
+                return false;
+            }
+            return true;
+        }
+
+        private ImageFromFolder getOuterType() {
+            return ImageFromFolder.this;
+        }
+
+
 
     }
 
     private List<Path> getFilesWithNameContains(String inName) {
         log.info("fetching files with " + inName + " in path...");
         ArrayList<Path> result = Lists.newArrayList();
+        waitUntilFinished();
         for (Path path : files) {
             if (path.toString().toLowerCase().contains(inName.toLowerCase())) {
                 result.add(path);
@@ -159,12 +218,6 @@ public class ImageFromFolder implements ImageProvider, Processor {
         return result;
     }
 
-    @Qualifier
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE})
-    public @interface ImageProviderImpl {
-
-    }
 
     @Override
     public File getWithName(String inName) {
@@ -174,5 +227,13 @@ public class ImageFromFolder implements ImageProvider, Processor {
         } catch (ExecutionException e) {
             throw new IllegalStateException("Problem on loading list from cache: ", e);
         }
+    }
+
+
+    @Qualifier
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE})
+    public @interface ImageProviderImpl {
+
     }
 }

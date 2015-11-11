@@ -2,8 +2,10 @@ package de.ml.routes;
 
 import javax.inject.Inject;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.http.HttpStatus;
 
 import de.ml.boot.ArgsConfiguration.Port;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
@@ -17,6 +19,7 @@ public class RestRoute extends RouteBuilder {
     private static final String DIRECT_NEXT_AUTO = "direct:auto";
     public static final String HEADER_AUTO_PARAMETER = "autoTime";
     public static final String AUTO_PATH = "auto";
+    public static final String HTTP_URI_HEADER = "CamelHttpUri";
     private Processor sendFile;
     private Integer port;
     private Processor setAutoHeader;
@@ -34,10 +37,12 @@ public class RestRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         restConfiguration().component("restlet").port(port);
+        intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
+                   .constant(HttpStatus.SC_NOT_FOUND).stop();
         rest()
               .get("/next").to(DIRECT_NEXT)
-              .get("/next/"+AUTO_PATH).to(DIRECT_NEXT_AUTO)
-              .get("/next/"+AUTO_PATH+ "/{" + HEADER_AUTO_PARAMETER + "}").to(DIRECT_NEXT_AUTO)
+              .get("/next/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
+              .get("/next/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}").to(DIRECT_NEXT_AUTO)
               .get("/update").to(DIRECT_UPDATE)
               .get("/{" + HEADER_NAME_PARAMETER + "}").to(DIRECT_NEXT)
               .get("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)

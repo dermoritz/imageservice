@@ -3,6 +3,7 @@ package de.ml.routes;
 import javax.inject.Inject;
 
 import org.apache.camel.Endpoint;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
@@ -22,7 +23,7 @@ public class UpdateImages extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from(updateTrigger).process(update);
+        from(updateTrigger).log(LoggingLevel.INFO, "Periodic update triggered.").process(update);
     }
 
 }

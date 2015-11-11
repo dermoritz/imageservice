@@ -7,6 +7,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.enterprise.inject.Produces;
@@ -17,12 +18,15 @@ import javax.inject.Singleton;
 import org.jboss.weld.environment.se.bindings.Parameters;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Lists;
+
 @Singleton
 public class ArgsConfiguration {
 
     private static final int DEFAULT_PORT = 80;
-    private File folder;
+    private List<File> folders;
     private List<String> args;
+    private static final String FOLDER_DELIMITER = ";";
     @Inject
     private Logger log;
 
@@ -30,14 +34,14 @@ public class ArgsConfiguration {
     private ArgsConfiguration(@Parameters List<String> args, Logger log) {
         this.args = args;
         checkArgument(args.size() > 0, "Missing argument to specify folder.");
-        folder = checkFolder(args.get(0));
+        folders = checkFolder(Arrays.asList(args.get(0).split(FOLDER_DELIMITER)));
 
     }
 
     @Produces
     @Folder
-    public File getFolder() {
-        return folder;
+    public List<File> getFolder() {
+        return folders;
     }
 
     @Produces
@@ -57,11 +61,15 @@ public class ArgsConfiguration {
         return port;
     }
 
-    private File checkFolder(String string) {
-        File file = new File(string);
-        checkArgument(file.isDirectory(),"Given argument \"" + file + "\" is not a directory.");
-        checkArgument(file.canRead(),"Can not read from given directory: " + file);
-        return file;
+    private List<File> checkFolder(List<String> list) {
+        List<File> result = Lists.newArrayList();
+        for (String string : list) {
+            File file = new File(string);
+            checkArgument(file.isDirectory(),"Given argument \"" + file + "\" is not a directory.");
+            checkArgument(file.canRead(),"Can not read from given directory: " + file);
+            result.add(file);
+        }
+        return result;
     }
 
     @Qualifier

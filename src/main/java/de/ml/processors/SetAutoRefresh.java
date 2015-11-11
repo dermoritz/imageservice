@@ -17,12 +17,11 @@ import de.ml.routes.RestRoute;
 
 @SetAutoRefreshProc
 public class SetAutoRefresh implements Processor {
-    private static final String HTTP_URI_HEADER = "CamelHttpUri";
     private static final String DEFAULT_AUTO_TIME = "5";
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        String uri = exchange.getIn().getHeader(HTTP_URI_HEADER, String.class);
+        String uri = exchange.getIn().getHeader(RestRoute.HTTP_URI_HEADER, String.class);
         String time = exchange.getIn().getHeader(RestRoute.HEADER_AUTO_PARAMETER, String.class);
         if (Strings.isNullOrEmpty(time)) {
             time = DEFAULT_AUTO_TIME;
