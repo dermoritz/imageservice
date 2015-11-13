@@ -13,6 +13,9 @@ import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 
 public class RestRoute extends RouteBuilder {
+    public static final String HISTORY_HEADER = "history";
+    private static final String DIRECT_INFO = "direct:info";
+    private static final String DIRECT_PREV = "direct:prev";
     private static final String DIRECT_UPDATE = "direct:update";
     public static final String HEADER_NAME_PARAMETER = "inName";
     private static final String DIRECT_NEXT = "direct:next";
@@ -44,6 +47,8 @@ public class RestRoute extends RouteBuilder {
               .get("/next/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
               .get("/next/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}").to(DIRECT_NEXT_AUTO)
               .get("/update").to(DIRECT_UPDATE)
+              .get("/prev").to(DIRECT_PREV)
+              .get("/info").to(DIRECT_INFO)
               .get("/{" + HEADER_NAME_PARAMETER + "}").to(DIRECT_NEXT)
               .get("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
               .get("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}")
@@ -51,6 +56,13 @@ public class RestRoute extends RouteBuilder {
         from(DIRECT_NEXT).process(sendFile);
         from(DIRECT_NEXT_AUTO).process(setAutoHeader).to(DIRECT_NEXT);
         from(DIRECT_UPDATE).process(imageProvider);
+        from(DIRECT_PREV).setHeader(HISTORY_HEADER,constant(History.PREV)).process(sendFile);
+        from(DIRECT_INFO).setHeader(HISTORY_HEADER, constant(History.INFO)).process(sendFile);
     }
 
-};
+    public enum History{
+        PREV,
+        INFO;
+    }
+
+}
