@@ -11,7 +11,7 @@
 	<fileSets>
 		<fileSet>
 			<directory>${project.build.directory}</directory>
-			<outputDirectory>/</outputDirectory>
+			<outputDirectory/>
 			<includes>
 				<include>*.jar</include>
 			</includes>
@@ -20,7 +20,7 @@
 	<dependencySets>
 		<dependencySet>
 			<scope>runtime</scope>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<useProjectArtifact>false</useProjectArtifact>
 			<unpack>false</unpack>
 		</dependencySet>

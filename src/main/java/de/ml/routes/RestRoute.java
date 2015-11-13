@@ -3,6 +3,7 @@ package de.ml.routes;
 import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.HttpStatus;
@@ -13,6 +14,8 @@ import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 
 public class RestRoute extends RouteBuilder {
+    private static final String DIRECT_FILTER_INFO = "direct:filter_info";
+    private static final String FILTER_INFO_PATH = "info";
     public static final String HISTORY_HEADER = "history";
     private static final String DIRECT_INFO = "direct:info";
     private static final String DIRECT_PREV = "direct:prev";
@@ -42,6 +45,7 @@ public class RestRoute extends RouteBuilder {
         restConfiguration().component("restlet").port(port);
         intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
                    .constant(HttpStatus.SC_NOT_FOUND).stop();
+        errorHandler(loggingErrorHandler(log).level(LoggingLevel.WARN));
         rest()
               .get("/next").to(DIRECT_NEXT)
               .get("/next/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
@@ -51,6 +55,7 @@ public class RestRoute extends RouteBuilder {
               .get("/info").to(DIRECT_INFO)
               .get("/{" + HEADER_NAME_PARAMETER + "}").to(DIRECT_NEXT)
               .get("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
+              .get("/{" + HEADER_NAME_PARAMETER + "}/" + FILTER_INFO_PATH).to(DIRECT_FILTER_INFO)
               .get("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}")
               .to(DIRECT_NEXT_AUTO);
         from(DIRECT_NEXT).process(sendFile);
@@ -58,11 +63,13 @@ public class RestRoute extends RouteBuilder {
         from(DIRECT_UPDATE).process(imageProvider);
         from(DIRECT_PREV).setHeader(HISTORY_HEADER,constant(History.PREV)).process(sendFile);
         from(DIRECT_INFO).setHeader(HISTORY_HEADER, constant(History.INFO)).process(sendFile);
+        from(DIRECT_FILTER_INFO).setHeader(HISTORY_HEADER, constant(History.FILTER_INFO)).process(sendFile);
     }
 
     public enum History{
         PREV,
-        INFO;
+        INFO,
+        FILTER_INFO;
     }
 
 }

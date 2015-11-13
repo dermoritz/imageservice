@@ -6,6 +6,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +45,12 @@ public class SendFile implements Processor {
         if (historyHeader != null) {
             handleHistory(historyHeader, exchange);
         } else {
-            String inName = exchange.getIn().getHeader(RestRoute.HEADER_NAME_PARAMETER, String.class);
+            String inName = URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
+                                                                                             RestRoute.HEADER_NAME_PARAMETER,
+                                                                                             String.class)),
+                                              StandardCharsets.UTF_8.name());
             File random;
-            if (Strings.isNullOrEmpty(inName)) {
+            if (inName.isEmpty()) {
                 random = ip.getRandom();
             } else {
                 random = ip.getWithName(inName);
@@ -53,9 +58,9 @@ public class SendFile implements Processor {
             if (random != null) {
                 setHeadersAndBody(exchange, random);
                 history.add(random);
-                currentIndex = history.size()-1;
+                currentIndex = history.size() - 1;
             } else {
-                exchange.getIn().setBody("Got no image :-(, maybe try later...");
+                exchange.getIn().setBody("Got no image :-(, maybe try later.... Filter: " + inName);
             }
         }
     }
@@ -70,17 +75,22 @@ public class SendFile implements Processor {
             }
             break;
         case PREV:
-            if(--currentIndex>=0){
+            if (--currentIndex >= 0) {
                 setHeadersAndBody(exchange, history.get(currentIndex));
-            } else if(history.size()>=0){
+            } else if (history.size() >= 0) {
                 setHeadersAndBody(exchange, history.get(0));
-            }
-            else{
+            } else {
                 exchange.getIn().setBody("nix");
             }
             break;
-        default:
+        case FILTER_INFO:
+            String inName = exchange.getIn().getHeader(RestRoute.HEADER_NAME_PARAMETER, String.class);
+            if (!Strings.isNullOrEmpty(inName)) {
+                exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
+            }
             break;
+        default:
+            throw new IllegalArgumentException("Unknown header content: " + historyHeader);
         }
 
     }

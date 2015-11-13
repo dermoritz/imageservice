@@ -115,7 +115,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         fetchAllFiles();
         //wait for result
         waitUntilFinished();
-        String message = "Update yielded " + (files.size()-oldFileCount) + " files.";
+        String message = "Update yielded " + (files.size()-oldFileCount) + " files. Total file count now: " + files.size();
         log.info(message);
         exchange.getIn().setBody(message);
     }
@@ -142,6 +142,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         public Void call() throws Exception {
             log.info("Starting file update on " +  folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
+            int oldCount =  files.size();
             try {
                 Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
 
@@ -158,9 +159,9 @@ public class ImageFromFolder implements ImageProvider, Processor {
                 throw new IllegalArgumentException("Problem reading folder: ", e);
             }
             stopwatch.stop();
-            log.info("... " + files.size() + " files found in " + folder + " in "
+            log.info("... " + (files.size() - oldCount) + " files found in " + folder + " in "
                      + stopwatch.elapsed(TimeUnit.SECONDS)
-                     + "s.");
+                     + "s. Total file count: " + files.size());
             return null;
         }
 
@@ -229,6 +230,15 @@ public class ImageFromFolder implements ImageProvider, Processor {
         }
     }
 
+    @Override
+    public int getCountWithName(String inName) {
+        try {
+            return cache.get(inName, () -> getFilesWithNameContains(inName)).size();
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Problem on loading list from cache: ", e);
+        }
+    }
+
 
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
@@ -236,4 +246,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     public @interface ImageProviderImpl {
 
     }
+
+
+
 }
