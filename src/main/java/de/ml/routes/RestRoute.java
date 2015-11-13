@@ -1,5 +1,7 @@
 package de.ml.routes;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 
 import org.apache.camel.Exchange;
@@ -45,7 +47,8 @@ public class RestRoute extends RouteBuilder {
         restConfiguration().component("restlet").port(port);
         intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
                    .constant(HttpStatus.SC_NOT_FOUND).stop();
-        errorHandler(loggingErrorHandler(log).level(LoggingLevel.WARN));
+        //ioexception occurs if reload is pressed before image was fully delivered - so it could be swallowed
+        onException(IOException.class).handled(true).stop();
         rest()
               .get("/next").to(DIRECT_NEXT)
               .get("/next/" + AUTO_PATH).to(DIRECT_NEXT_AUTO)
