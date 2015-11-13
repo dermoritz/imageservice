@@ -63,8 +63,8 @@ public class SendFile implements Processor {
     private void handleHistory(History historyHeader, Exchange exchange) {
         switch (historyHeader) {
         case INFO:
-            if (history.size() - 1 >= 0) {
-                exchange.getIn().setBody(history.get(history.size() - 1).getAbsolutePath());
+            if (currentIndex >= 0) {
+                exchange.getIn().setBody(history.get(currentIndex).getAbsolutePath());
             } else {
                 exchange.getIn().setBody("nix");
             }
