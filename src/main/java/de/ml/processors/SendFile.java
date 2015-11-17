@@ -91,7 +91,7 @@ public class SendFile implements Processor {
             break;
         case CURRENT:
             if (currentIndex >= 0) {
-                exchange.getIn().setBody(history.get(currentIndex));
+                setHeadersAndBody(exchange, history.get(currentIndex));
             } else {
                 exchange.getIn().setBody("nix");
             }
