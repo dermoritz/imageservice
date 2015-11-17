@@ -89,6 +89,13 @@ public class SendFile implements Processor {
                 exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
             }
             break;
+        case CURRENT:
+            if (currentIndex >= 0) {
+                exchange.getIn().setBody(history.get(currentIndex));
+            } else {
+                exchange.getIn().setBody("nix");
+            }
+            break;
         default:
             throw new IllegalArgumentException("Unknown header content: " + historyHeader);
         }
