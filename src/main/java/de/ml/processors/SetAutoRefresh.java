@@ -12,6 +12,7 @@ import org.apache.camel.Processor;
 
 import com.google.common.base.Strings;
 
+import de.ml.endpoints.RestEndpoints;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 import de.ml.routes.RestRoute;
 
@@ -22,7 +23,7 @@ public class SetAutoRefresh implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         String uri = exchange.getIn().getHeader(RestRoute.HTTP_URI_HEADER, String.class);
-        String time = exchange.getIn().getHeader(RestRoute.HEADER_AUTO_PARAMETER, String.class);
+        String time = exchange.getIn().getHeader(RestEndpoints.HEADER_AUTO_PARAMETER, String.class);
         if (Strings.isNullOrEmpty(time)) {
             time = DEFAULT_AUTO_TIME;
         }

@@ -21,6 +21,7 @@ import org.apache.camel.Processor;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 
+import de.ml.endpoints.RestEndpoints;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
@@ -46,7 +47,7 @@ public class SendFile implements Processor {
             handleHistory(historyHeader, exchange);
         } else {
             String inName = URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
-                                                                                             RestRoute.HEADER_NAME_PARAMETER,
+                                                                                             RestEndpoints.HEADER_NAME_PARAMETER,
                                                                                              String.class)),
                                               StandardCharsets.UTF_8.name());
             File random;
@@ -84,7 +85,7 @@ public class SendFile implements Processor {
             }
             break;
         case FILTER_INFO:
-            String inName = exchange.getIn().getHeader(RestRoute.HEADER_NAME_PARAMETER, String.class);
+            String inName = exchange.getIn().getHeader(RestEndpoints.HEADER_NAME_PARAMETER, String.class);
             if (!Strings.isNullOrEmpty(inName)) {
                 exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
             }

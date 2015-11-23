@@ -8,5 +8,7 @@ public class runMain {
     public void run() {
         org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1"});
     }
+    
+    
 
 }
