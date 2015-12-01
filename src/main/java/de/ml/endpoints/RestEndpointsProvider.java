@@ -1,14 +1,8 @@
 package de.ml.endpoints;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.Map;
 
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.inject.Qualifier;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
