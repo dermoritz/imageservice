@@ -2,6 +2,7 @@ package de.ml.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -47,17 +48,14 @@ public class SendFile implements Processor {
         if (historyHeader != null) {
             handleHistory(historyHeader, exchange);
         } else {
-            String inName = URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
-                                                                                             RestEndpointsProvider.HEADER_NAME_PARAMETER,
-                                                                                             String.class)),
-                                              StandardCharsets.UTF_8.name());
+            String inName = getNameParameter(exchange);
             File random;
             if (inName.isEmpty()) {
                 random = ip.getRandom();
             } else {
-                if (sort) {
+                if (sort != null && sort) {
                     random = ip.getWithNameSort(inName);
-                }else {
+                } else {
                     random = ip.getWithName(inName);
                 }
             }
@@ -68,6 +66,17 @@ public class SendFile implements Processor {
             } else {
                 exchange.getIn().setBody("Got no image :-(, maybe try later.... Filter: " + inName);
             }
+        }
+    }
+
+    private String getNameParameter(Exchange exchange) {
+        try {
+            return URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
+                                                                                    RestEndpointsProvider.HEADER_NAME_PARAMETER,
+                                                                                    String.class)),
+                                     StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Something wentt wrong: ", e);
         }
     }
 
@@ -91,7 +100,7 @@ public class SendFile implements Processor {
             }
             break;
         case FILTER_INFO:
-            String inName = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_NAME_PARAMETER, String.class);
+            String inName = getNameParameter(exchange);
             if (!Strings.isNullOrEmpty(inName)) {
                 setNoCacheHeaders(exchange);
                 exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
@@ -122,7 +131,7 @@ public class SendFile implements Processor {
         exchange.getIn().setBody(file);
     }
 
-    private void setNoCacheHeaders(Exchange exchange){
+    private void setNoCacheHeaders(Exchange exchange) {
         exchange.getIn().setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
         exchange.getIn().setHeader(HttpHeaders.PRAGMA, "no-cache");
         exchange.getIn().setHeader(HttpHeaders.EXPIRES, "0");
