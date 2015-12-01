@@ -23,6 +23,7 @@ public class RestEndpointsProvider implements RestEndpoints {
     public static final String HEADER_NAME_PARAMETER = "inName";
     public static final String AUTO_PATH = "auto";
     public static final String INFO_PATH = "info";
+    public static final String SORT_PATH = "sort";
 
     @Inject
     private RestEndpointsProvider(CamelContext context, @AllowedUsers Map<String, String> users, @Port Integer port) {
@@ -32,7 +33,9 @@ public class RestEndpointsProvider implements RestEndpoints {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#next()
      */
     @Override
@@ -40,7 +43,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/next");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#nextAuto()
      */
     @Override
@@ -48,7 +53,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/next/" + AUTO_PATH);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#nextAutoTime()
      */
     @Override
@@ -56,7 +63,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/next/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#update()
      */
     @Override
@@ -64,7 +73,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/update");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#prev()
      */
     @Override
@@ -72,7 +83,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/prev");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#info()
      */
     @Override
@@ -80,7 +93,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/" + INFO_PATH);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#current()
      */
     @Override
@@ -88,7 +103,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/current");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#filterName()
      */
     @Override
@@ -96,7 +113,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#filterNameAuto()
      */
     @Override
@@ -104,7 +123,9 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#filterNameInfo()
      */
     @Override
@@ -112,12 +133,30 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + INFO_PATH);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see de.ml.endpoints.RestEndpoints#filterNameAutoTime()
      */
     @Override
     public Endpoint filterNameAutoTime() {
         return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}");
+    }
+
+    @Override
+    public Endpoint filterNameSort() {
+        return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + SORT_PATH);
+    }
+
+    @Override
+    public Endpoint filterNameAutoSort() {
+        return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + SORT_PATH + "/" + AUTO_PATH);
+    }
+
+    @Override
+    public Endpoint filterNameAutoTimeSort() {
+        return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + SORT_PATH + "/" + AUTO_PATH + "/{"
+                               + HEADER_AUTO_PARAMETER + "}");
     }
 
     private Endpoint getRestEndpoint(String path) {

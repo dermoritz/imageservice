@@ -12,13 +12,17 @@ import de.ml.endpoints.RestEndpoints;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
+import de.ml.processors.SetSortHeader.SetSortProc;
 
 public class RestRoute extends RouteBuilder {
+    private static final String DIRECT_SORT_AUTO = "direct:sortAuto";
+
+    private static final String DIRECT_SORT = "direct:sort";
+
     public static final String HISTORY_HEADER = "history";
 
     private static final String DIRECT_NEXT = "direct:next";
     private static final String DIRECT_NEXT_AUTO = "direct:auto";
-
 
     public static final String HTTP_URI_HEADER = "CamelHttpUri";
     private Processor sendFile;
@@ -36,13 +40,21 @@ public class RestRoute extends RouteBuilder {
     private Endpoint filterNameInfo;
     private Endpoint filterNameAutoTime;
 
+    private Endpoint filterNameSort;
+
+    private Endpoint filterNameAutoSort;
+
+    private Endpoint filterNameAutoTimeSort;
+
+    private Processor setSortHeader;
+
     @Inject
-    private RestRoute(@SendFileProc Processor sendFile,
-                      @SetAutoRefreshProc Processor setAutoHeader, @ImageProviderImpl Processor imageProvider,
-                      RestEndpoints restEndpoints) {
+    private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
+                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints, @SetSortProc Processor setSortHeader) {
         this.sendFile = sendFile;
         this.setAutoHeader = setAutoHeader;
         this.imageProvider = imageProvider;
+        this.setSortHeader = setSortHeader;
         this.next = restEndpoints.next();
         this.nextAuto = restEndpoints.nextAuto();
         this.nextAutoTime = restEndpoints.nextAutoTime();
@@ -54,6 +66,9 @@ public class RestRoute extends RouteBuilder {
         this.filterNameAuto = restEndpoints.filterNameAuto();
         this.filterNameInfo = restEndpoints.filterNameInfo();
         this.filterNameAutoTime = restEndpoints.filterNameAutoTime();
+        filterNameSort = restEndpoints.filterNameSort();
+        filterNameAutoSort = restEndpoints.filterNameAutoSort();
+        filterNameAutoTimeSort = restEndpoints.filterNameAutoTimeSort();
     }
 
     @Override
@@ -61,6 +76,8 @@ public class RestRoute extends RouteBuilder {
         intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
                    .constant(HttpStatus.SC_NOT_FOUND).stop();
         from(DIRECT_NEXT_AUTO).process(setAutoHeader).to(DIRECT_NEXT);
+        from(DIRECT_SORT).process(setSortHeader).to(DIRECT_NEXT);
+        from(DIRECT_SORT_AUTO).process(setAutoHeader).process(setSortHeader).to(DIRECT_NEXT);
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);
@@ -69,9 +86,12 @@ public class RestRoute extends RouteBuilder {
         from(info).setHeader(HISTORY_HEADER, constant(History.INFO)).process(sendFile);
         from(current).setHeader(HISTORY_HEADER, constant(History.CURRENT)).process(sendFile);
         from(filterName).to(DIRECT_NEXT);
+        from(filterNameSort).to(DIRECT_SORT);
         from(filterNameAuto).to(DIRECT_NEXT_AUTO);
+        from(filterNameAutoSort).to(DIRECT_SORT_AUTO);
         from(filterNameInfo).setHeader(HISTORY_HEADER, constant(History.FILTER_INFO)).process(sendFile);
         from(filterNameAutoTime).to(DIRECT_NEXT_AUTO);
+        from(filterNameAutoTimeSort).to(DIRECT_SORT_AUTO);
         from(DIRECT_NEXT).process(sendFile);
     }
 

@@ -43,6 +43,7 @@ public class SendFile implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         History historyHeader = exchange.getIn().getHeader(RestRoute.HISTORY_HEADER, History.class);
+        Boolean sort = exchange.getIn().getHeader(SetSortHeader.SORT_HEADER, Boolean.class);
         if (historyHeader != null) {
             handleHistory(historyHeader, exchange);
         } else {
@@ -54,7 +55,11 @@ public class SendFile implements Processor {
             if (inName.isEmpty()) {
                 random = ip.getRandom();
             } else {
-                random = ip.getWithName(inName);
+                if (sort) {
+                    random = ip.getWithNameSort(inName);
+                }else {
+                    random = ip.getWithName(inName);
+                }
             }
             if (random != null) {
                 setHeadersAndBody(exchange, random);

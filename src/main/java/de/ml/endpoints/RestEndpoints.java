@@ -31,4 +31,10 @@ public interface RestEndpoints {
 
     Endpoint filterNameAutoTime();
 
+    Endpoint filterNameSort();
+
+    Endpoint filterNameAutoSort();
+
+    Endpoint filterNameAutoTimeSort();
+
 }

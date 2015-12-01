@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -32,8 +34,10 @@ import org.apache.camel.builder.ThreadPoolBuilder;
 import org.slf4j.Logger;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -45,6 +49,10 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 public class ImageFromFolder implements ImageProvider, Processor {
 
     private List<File> folders;
+
+    private Iterator<Path> currentSortedIterator;
+
+    private String currentIteratorName;
 
     private volatile List<Path> files = Lists.newArrayList();
 
@@ -222,21 +230,13 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     @Override
     public File getWithName(String inName) {
-        try {
-            Path file = getRandomOf(cache.get(inName, () -> getFilesWithNameContains(inName)));
+            Path file = getRandomOf(getCachedWithName(inName));
             return file == null ? null : file.toFile();
-        } catch (ExecutionException e) {
-            throw new IllegalStateException("Problem on loading list from cache: ", e);
-        }
     }
 
     @Override
     public int getCountWithName(String inName) {
-        try {
-            return cache.get(inName, () -> getFilesWithNameContains(inName)).size();
-        } catch (ExecutionException e) {
-            throw new IllegalStateException("Problem on loading list from cache: ", e);
-        }
+            return getCachedWithName(inName).size();
     }
 
 
@@ -247,6 +247,26 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     }
 
+    @Override
+    public File getWithNameSort(String inName) {
+        if(Strings.isNullOrEmpty(inName)){
+            throw new IllegalArgumentException("inName must be set to a non emptz string.");
+        }
+        if(!inName.toLowerCase().equals(currentIteratorName)){
+            List<Path> list = getCachedWithName(inName);
+            Collections.sort(list);
+            currentSortedIterator = Iterators.cycle(list);
+            currentIteratorName = inName.toLowerCase();
+        }
+        return currentSortedIterator.next().toFile();
+    }
 
+    private List<Path> getCachedWithName(String inName){
+        try {
+            return cache.get(inName, () -> getFilesWithNameContains(inName));
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Problem on loading list from cache: ", e);
+        }
+    }
 
 }

@@ -17,6 +17,14 @@ public interface ImageProvider {
     File getWithName(String inName);
 
     /**
+     * Returns next image from a sorted list if called subsequently for same name.
+     * Resets after call for new name. This will cycle around.
+     * @param inName part of path or file name.
+     * @return next image in order by name
+     */
+    File getWithNameSort(String inName);
+
+    /**
      *
      * @param inName part of path or file name
      * @return count of files matching filter
