@@ -21,7 +21,7 @@ import org.apache.camel.Processor;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
 
-import de.ml.endpoints.RestEndpoints;
+import de.ml.endpoints.RestEndpointsProvider;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
@@ -47,7 +47,7 @@ public class SendFile implements Processor {
             handleHistory(historyHeader, exchange);
         } else {
             String inName = URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
-                                                                                             RestEndpoints.HEADER_NAME_PARAMETER,
+                                                                                             RestEndpointsProvider.HEADER_NAME_PARAMETER,
                                                                                              String.class)),
                                               StandardCharsets.UTF_8.name());
             File random;
@@ -70,6 +70,7 @@ public class SendFile implements Processor {
         switch (historyHeader) {
         case INFO:
             if (currentIndex >= 0) {
+                setNoCacheHeaders(exchange);
                 exchange.getIn().setBody(history.get(currentIndex).getAbsolutePath());
             } else {
                 exchange.getIn().setBody("nix");
@@ -85,8 +86,9 @@ public class SendFile implements Processor {
             }
             break;
         case FILTER_INFO:
-            String inName = exchange.getIn().getHeader(RestEndpoints.HEADER_NAME_PARAMETER, String.class);
+            String inName = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_NAME_PARAMETER, String.class);
             if (!Strings.isNullOrEmpty(inName)) {
+                setNoCacheHeaders(exchange);
                 exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
             }
             break;
@@ -109,12 +111,16 @@ public class SendFile implements Processor {
         } catch (IOException e) {
             throw new IllegalStateException("Problem detecting media type: ", e);
         }
-        exchange.getIn().setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
         exchange.getIn().setHeader(HttpHeaders.CONTENT_DISPOSITION,
                                    "inline; filename=\"" + file.getName() + "\"");
+        setNoCacheHeaders(exchange);
+        exchange.getIn().setBody(file);
+    }
+
+    private void setNoCacheHeaders(Exchange exchange){
+        exchange.getIn().setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
         exchange.getIn().setHeader(HttpHeaders.PRAGMA, "no-cache");
         exchange.getIn().setHeader(HttpHeaders.EXPIRES, "0");
-        exchange.getIn().setBody(file);
     }
 
     @Qualifier

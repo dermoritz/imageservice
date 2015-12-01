@@ -8,18 +8,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.HttpStatus;
 
-import de.ml.boot.ArgsConfiguration.Port;
-import de.ml.endpoints.RestEndpoints.Current;
-import de.ml.endpoints.RestEndpoints.FilterName;
-import de.ml.endpoints.RestEndpoints.FilterNameAuto;
-import de.ml.endpoints.RestEndpoints.FilterNameAutoTime;
-import de.ml.endpoints.RestEndpoints.FilterNameInfo;
-import de.ml.endpoints.RestEndpoints.Info;
-import de.ml.endpoints.RestEndpoints.Next;
-import de.ml.endpoints.RestEndpoints.NextAuto;
-import de.ml.endpoints.RestEndpoints.NextAutoTime;
-import de.ml.endpoints.RestEndpoints.Prev;
-import de.ml.endpoints.RestEndpoints.Update;
+import de.ml.endpoints.RestEndpoints;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
@@ -47,38 +36,24 @@ public class RestRoute extends RouteBuilder {
     private Endpoint filterNameInfo;
     private Endpoint filterNameAutoTime;
 
-    private Integer port;
-
     @Inject
     private RestRoute(@SendFileProc Processor sendFile,
                       @SetAutoRefreshProc Processor setAutoHeader, @ImageProviderImpl Processor imageProvider,
-                      @Next Endpoint next,
-                      @NextAuto Endpoint nextAuto,
-                      @NextAutoTime Endpoint nextAutoTime,
-                      @Update Endpoint update,
-                      @Prev Endpoint prev,
-                      @Info Endpoint info,
-                      @Current Endpoint current,
-                      @FilterName Endpoint filterName,
-                      @FilterNameAuto Endpoint filterNameAuto,
-                      @FilterNameInfo Endpoint filterNameInfo,
-                      @FilterNameAutoTime Endpoint filterNameAutoTime,
-                      @Port Integer port) {
+                      RestEndpoints restEndpoints) {
         this.sendFile = sendFile;
         this.setAutoHeader = setAutoHeader;
         this.imageProvider = imageProvider;
-        this.next = next;
-        this.nextAuto = nextAuto;
-        this.nextAutoTime = nextAutoTime;
-        this.update = update;
-        this.prev = prev;
-        this.info = info;
-        this.current = current;
-        this.filterName = filterName;
-        this.filterNameAuto = filterNameAuto;
-        this.filterNameInfo = filterNameInfo;
-        this.filterNameAutoTime = filterNameAutoTime;
-        this.port = port;
+        this.next = restEndpoints.next();
+        this.nextAuto = restEndpoints.nextAuto();
+        this.nextAutoTime = restEndpoints.nextAutoTime();
+        this.update = restEndpoints.update();
+        this.prev = restEndpoints.prev();
+        this.info = restEndpoints.info();
+        this.current = restEndpoints.current();
+        this.filterName = restEndpoints.filterName();
+        this.filterNameAuto = restEndpoints.filterNameAuto();
+        this.filterNameInfo = restEndpoints.filterNameInfo();
+        this.filterNameAutoTime = restEndpoints.filterNameAutoTime();
     }
 
     @Override
