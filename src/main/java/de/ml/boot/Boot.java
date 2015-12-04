@@ -1,6 +1,7 @@
 package de.ml.boot;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
@@ -64,13 +65,9 @@ public class Boot {
 
     public void start(@Observes ContainerInitialized event) throws Exception {
         log.info("starting");
-        //main.enableHangupSupport();
+        main.enableHangupSupport();
         main.run();
-    }
 
-    public void stop(@Observes ContainerShutdown event) throws Exception {
-        log.info("stopping");
-        main.stop();
     }
 
 }
