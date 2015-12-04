@@ -64,11 +64,12 @@ public class Boot {
 
     public void start(@Observes ContainerInitialized event) throws Exception {
         log.info("starting");
+        //main.enableHangupSupport();
         main.run();
     }
 
     public void stop(@Observes ContainerShutdown event) throws Exception {
-        log.info("starting");
+        log.info("stopping");
         main.stop();
     }
 
