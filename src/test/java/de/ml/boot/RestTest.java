@@ -25,7 +25,7 @@ public class RestTest {
     public void testNext(){
         RestAssured.with()
             .authentication().basic("user1", "awdrg")
-            .get("http://moritz-prodyna/next").then().statusCode(200);
+            .get("http://localhost/next").then().statusCode(200);
     }
 
 

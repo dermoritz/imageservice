@@ -4,6 +4,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import de.ml.statistic.StatisticImpl;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.component.restlet.RestletEndpoint;
@@ -157,6 +158,11 @@ public class RestEndpointsProvider implements RestEndpoints {
     public Endpoint filterNameAutoTimeSort() {
         return getRestEndpoint("/{" + HEADER_NAME_PARAMETER + "}/" + SORT_PATH + "/" + AUTO_PATH + "/{"
                                + HEADER_AUTO_PARAMETER + "}");
+    }
+
+    @Override
+    public Endpoint statisticAvgDistance() {
+        return getRestEndpoint("/statistic/" + StatisticImpl.AVG_DISTANCE_ENDPOINT);
     }
 
     private Endpoint getRestEndpoint(String path) {

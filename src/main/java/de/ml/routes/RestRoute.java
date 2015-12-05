@@ -2,6 +2,7 @@ package de.ml.routes;
 
 import javax.inject.Inject;
 
+import de.ml.statistic.Statistic;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -25,6 +26,8 @@ public class RestRoute extends RouteBuilder {
     private static final String DIRECT_NEXT_AUTO = "direct:auto";
 
     public static final String HTTP_URI_HEADER = "CamelHttpUri";
+    private final Endpoint avgDistance;
+    private final Statistic statistic;
     private Processor sendFile;
     private Processor setAutoHeader;
     private Processor imageProvider;
@@ -50,7 +53,7 @@ public class RestRoute extends RouteBuilder {
 
     @Inject
     private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
-                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints, @SetSortProc Processor setSortHeader) {
+                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints, @SetSortProc Processor setSortHeader, Statistic statistic) {
         this.sendFile = sendFile;
         this.setAutoHeader = setAutoHeader;
         this.imageProvider = imageProvider;
@@ -69,6 +72,8 @@ public class RestRoute extends RouteBuilder {
         filterNameSort = restEndpoints.filterNameSort();
         filterNameAutoSort = restEndpoints.filterNameAutoSort();
         filterNameAutoTimeSort = restEndpoints.filterNameAutoTimeSort();
+        avgDistance = restEndpoints.statisticAvgDistance();
+        this.statistic = statistic;
     }
 
     @Override
@@ -78,6 +83,7 @@ public class RestRoute extends RouteBuilder {
         from(DIRECT_NEXT_AUTO).process(setAutoHeader).to(DIRECT_NEXT);
         from(DIRECT_SORT).process(setSortHeader).to(DIRECT_NEXT);
         from(DIRECT_SORT_AUTO).process(setAutoHeader).process(setSortHeader).to(DIRECT_NEXT);
+        from(avgDistance).process((Processor) statistic);
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);

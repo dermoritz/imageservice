@@ -37,4 +37,6 @@ public interface RestEndpoints {
 
     Endpoint filterNameAutoTimeSort();
 
+    Endpoint statisticAvgDistance();
+
 }

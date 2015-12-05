@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
+import de.ml.statistic.Statistic;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -48,6 +49,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 @ImageProviderImpl
 public class ImageFromFolder implements ImageProvider, Processor {
 
+    private volatile Statistic statistic;
     private List<File> folders;
 
     private Iterator<Path> currentSortedIterator;
@@ -67,7 +69,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
     private Cache<String, List<Path>> cache;
 
     @Inject
-    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context) {
+    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context, Statistic statistic) {
+        this.statistic = statistic;
         this.folders = folders;
         this.log = log;
         try {
@@ -91,6 +94,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     private Path getRandomOf(List<Path> list) {
         if (list.size() > 0) {
             int index = random.nextInt(list.size());
+            statistic.update(index);
             Path file = list.get(index);
             if (file.toFile().canRead()) {
                 return file;
@@ -170,6 +174,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
             log.info("... " + (files.size() - oldCount) + " files found in " + folder + " in "
                      + stopwatch.elapsed(TimeUnit.SECONDS)
                      + "s. Total file count: " + files.size());
+            statistic.setCount(files.size());
             return null;
         }
 
@@ -250,7 +255,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     @Override
     public File getWithNameSort(String inName) {
         if(Strings.isNullOrEmpty(inName)){
-            throw new IllegalArgumentException("inName must be set to a non emptz string.");
+            throw new IllegalArgumentException("inName must be set to a non empty string.");
         }
         if(!inName.toLowerCase().equals(currentIteratorName)){
             List<Path> list = getCachedWithName(inName);
