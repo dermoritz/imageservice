@@ -165,6 +165,10 @@ public class RestEndpointsProvider implements RestEndpoints {
         return getRestEndpoint("/statistic/" + StatisticImpl.AVG_DISTANCE_ENDPOINT);
     }
 
+    @Override public Endpoint statisticDistChart() {
+        return getRestEndpoint("/statistic/" + StatisticImpl.DISTRIBUTION_CHART);
+    }
+
     private Endpoint getRestEndpoint(String path) {
         RestletEndpoint endpoint = context.getEndpoint("restlet:http://localhost" + path, RestletEndpoint.class);
         endpoint.setRestletMethod(Method.GET);

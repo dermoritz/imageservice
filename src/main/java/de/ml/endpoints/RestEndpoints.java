@@ -39,4 +39,5 @@ public interface RestEndpoints {
 
     Endpoint statisticAvgDistance();
 
+    Endpoint statisticDistChart();
 }

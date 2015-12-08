@@ -131,7 +131,7 @@ public class SendFile implements Processor {
         exchange.getIn().setBody(file);
     }
 
-    private void setNoCacheHeaders(Exchange exchange) {
+    public static void setNoCacheHeaders(Exchange exchange) {
         exchange.getIn().setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
         exchange.getIn().setHeader(HttpHeaders.PRAGMA, "no-cache");
         exchange.getIn().setHeader(HttpHeaders.EXPIRES, "0");

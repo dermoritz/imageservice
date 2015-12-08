@@ -28,6 +28,7 @@ public class RestRoute extends RouteBuilder {
     public static final String HTTP_URI_HEADER = "CamelHttpUri";
     private final Endpoint avgDistance;
     private final Statistic statistic;
+    private final Endpoint distChart;
     private Processor sendFile;
     private Processor setAutoHeader;
     private Processor imageProvider;
@@ -73,6 +74,7 @@ public class RestRoute extends RouteBuilder {
         filterNameAutoSort = restEndpoints.filterNameAutoSort();
         filterNameAutoTimeSort = restEndpoints.filterNameAutoTimeSort();
         avgDistance = restEndpoints.statisticAvgDistance();
+        distChart = restEndpoints.statisticDistChart();
         this.statistic = statistic;
     }
 
@@ -84,6 +86,7 @@ public class RestRoute extends RouteBuilder {
         from(DIRECT_SORT).process(setSortHeader).to(DIRECT_NEXT);
         from(DIRECT_SORT_AUTO).process(setAutoHeader).process(setSortHeader).to(DIRECT_NEXT);
         from(avgDistance).process((Processor) statistic);
+        from(distChart).process((Processor) statistic);
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);
