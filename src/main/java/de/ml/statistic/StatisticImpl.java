@@ -24,32 +24,36 @@ public class StatisticImpl implements Statistic, Serializable, Processor {
 
     private Float avgDistance;
 
-    private int lastIndex = 0;
+    private Integer lastIndex;
 
     private Integer count;
 
     private long callCount = 0;
 
     @Override
-    public void update(int index) {
-        distribution.incrementAndGet(index);
-        updateAvgDistance(index);
+    public void update( int index ) {
+        distribution.incrementAndGet( index );
+        updateAvgDistance( index );
     }
 
     @Override
-    public void setCount(int count) {
+    public void setCount( int count ) {
+        lastIndex = null;
         avgDistance = null;
         distribution = AtomicLongMap.create();
         this.count = count;
         callCount = 0;
     }
 
-    private void updateAvgDistance(int index) {
-        int distance = Math.abs(lastIndex - index);
-        if(avgDistance!=null){
-            avgDistance = avgDistance + ((distance - avgDistance) / ++callCount);
-        } else {
-            avgDistance = (float) distance;
+    private void updateAvgDistance( int index ) {
+        // 2 phases, 1st call set index, 2nd call get first distance
+        if( lastIndex != null ) {
+            int distance = Math.abs( lastIndex - index );
+            if( avgDistance != null ) {
+                avgDistance = avgDistance + ( ( distance - avgDistance ) / ++callCount );
+            } else {
+                avgDistance = (float) distance;
+            }
         }
         lastIndex = index;
     }
@@ -65,13 +69,12 @@ public class StatisticImpl implements Statistic, Serializable, Processor {
     }
 
     @Override
-    public void process(Exchange exchange) throws Exception {
-        String url = exchange.getIn().getHeader(RestRoute.HTTP_URI_HEADER, String.class);
-        if (url != null && url.toLowerCase().endsWith(AVG_DISTANCE_ENDPOINT.toLowerCase())) {
-            exchange.getIn().setBody("average distance: " + avgDistance + " expected Distance: " + count / 3f);
+    public void process( Exchange exchange ) throws Exception {
+        String url = exchange.getIn().getHeader( RestRoute.HTTP_URI_HEADER, String.class );
+        if( url != null && url.toLowerCase().endsWith( AVG_DISTANCE_ENDPOINT.toLowerCase() ) ) {
+            exchange.getIn().setBody( "average distance: " + avgDistance + " expected Distance: " + count / 3f );
         }
 
     }
-
 
 }
