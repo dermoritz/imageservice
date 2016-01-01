@@ -108,6 +108,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
     }
 
     private void fetchAllFiles() {
+        //new random, new sequence
+        random = new Random();
         files.clear();
         cache.invalidateAll();
         for (File folder : folders) {
