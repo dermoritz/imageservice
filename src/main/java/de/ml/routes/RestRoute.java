@@ -15,6 +15,8 @@ import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 import de.ml.processors.SetSortHeader.SetSortProc;
 
+import java.io.IOException;
+
 public class RestRoute extends RouteBuilder {
     private static final String DIRECT_SORT_AUTO = "direct:sortAuto";
 
@@ -80,6 +82,8 @@ public class RestRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        //ioexception is thrown if client cancels loading or reloads before finished.
+        onException(IOException.class).handled(true);
         intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
                    .constant(HttpStatus.SC_NOT_FOUND).stop();
         from(DIRECT_NEXT_AUTO).process(setAutoHeader).to(DIRECT_NEXT);
