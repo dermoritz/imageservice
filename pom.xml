@@ -16,6 +16,11 @@
             <artifactId>weld-se</artifactId>
             <version>2.3.1.Final</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
         <!-- camel -->
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -26,11 +31,6 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-restlet</artifactId>
             <version>${camel.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>19.0</version>
         </dependency>
         <!-- logging -->
         <dependency>
