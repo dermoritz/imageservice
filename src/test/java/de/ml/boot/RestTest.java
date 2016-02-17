@@ -9,14 +9,17 @@ import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
 
+import static de.ml.boot.Util.*;
+
 public class RestTest {
 
     private Future<?> task;
 
     @Before
     public void run() throws InterruptedException {
+        String resourcefolder = getFolderOfResourceFolder("");
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        task = exec.submit(()->org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1"}));
+        task = exec.submit(()->org.jboss.weld.environment.se.StartMain.main(new String[] {resourcefolder}));
         //wait until camel started
         Thread.sleep(10000);
     }
