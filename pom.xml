@@ -4,7 +4,7 @@
     <groupId>de.ml</groupId>
     <artifactId>imageService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>camelExamples</name>
+    <name>imageService</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <camel.version>2.16.0</camel.version>
