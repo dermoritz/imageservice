@@ -13,24 +13,23 @@ import static de.ml.boot.Util.*;
 
 public class RestTest {
 
+    public static final String PORT = "8187";
     private Future<?> task;
 
     @Before
     public void run() throws InterruptedException {
-        String resourcefolder = getFolderOfResourceFolder("");
+        String resourcefolder = getFolderOfResourceFolder( "" );
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        task = exec.submit(()->org.jboss.weld.environment.se.StartMain.main(new String[] {resourcefolder}));
-        //wait until camel started
-        Thread.sleep(10000);
+        task = exec.submit( ( ) -> org.jboss.weld.environment.se.StartMain.main( new String[] { resourcefolder, PORT } ) );
+        // wait until camel started
+        Thread.sleep( 10000 );
     }
 
     @Test
-    public void testNext(){
+    public void testNext() {
         RestAssured.with()
-            .authentication().basic("user1", "awdrg")
-            .get("http://127.0.0.1/next").then().statusCode(200);
+            .authentication().basic( "user1", "awdrg" )
+            .get( "http://127.0.0.1:" + PORT + "/next" ).then().statusCode( 200 );
     }
-
-
 
 }
