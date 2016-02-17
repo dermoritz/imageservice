@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.ml</groupId>
     <artifactId>imageService</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>camelExamples</name>
+    <version>1.0</version>
+    <name>imageService</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <camel.version>2.16.0</camel.version>
@@ -16,6 +15,11 @@
             <artifactId>weld-se</artifactId>
             <version>2.3.1.Final</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
         <!-- camel -->
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -26,11 +30,6 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-restlet</artifactId>
             <version>${camel.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>19.0</version>
         </dependency>
         <!-- logging -->
         <dependency>
@@ -93,6 +92,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
+                    <finalName>imageService</finalName>
                     <descriptors>
                         <descriptor>src/assembly/assembly.xml</descriptor>
                     </descriptors>

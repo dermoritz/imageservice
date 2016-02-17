@@ -26,7 +26,6 @@ public class Boot {
 
     public static final String REALM_REG_KEY = "realm";
 
-    @Inject
     private Logger log;
 
     private CamelContext context;
@@ -41,9 +40,10 @@ public class Boot {
 
     @Inject
     private Boot(CamelContext context, @Any Instance<RouteBuilder> routes, CamelMain main,
-                 @AllowedUsers Map<String, String> realm, SimpleRegistry registry) throws Exception {
+                 @AllowedUsers Map<String, String> realm, SimpleRegistry registry, Logger log) throws Exception {
         this.realm = realm;
         this.registry = registry;
+        this.log = log;
         // eliminates logging to java.util.logger
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         // redirects all java.util.logger stuff to slf4j
@@ -56,18 +56,24 @@ public class Boot {
     }
 
     private void setupContext() throws Exception {
-        registry.put(REALM_REG_KEY, realm);
+        registerUsers();
         for (RouteBuilder routeBuilder : routes) {
             context.addRoutes(routeBuilder);
         }
 
     }
 
+    private void registerUsers(){
+        registry.put(REALM_REG_KEY, realm);
+        for(Map.Entry<String, String> user : realm.entrySet()){
+            log.info("User " + user.getKey() + ":" + user.getValue() + " is allowed to access.");
+        }
+    }
+
     public void start(@Observes ContainerInitialized event) throws Exception {
         log.info("starting");
         main.enableHangupSupport();
         main.run();
-
     }
 
 }
