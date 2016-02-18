@@ -31,10 +31,11 @@ all relative to <your machine's url : port>
 
 * /next will give you a random image
 * /prev .. the last image returned
+* /update .. will parse all given folders again
 * /current .. reloads the current image
 * /<filter string> .. returns a random file matching the string (the file path must contain the string)
 
-additional features
+### additional features
 
 * <filter string>/sort .. returns files matching the filter in order (sorted by path)
 * .../auto/<seconds> .. you can add this at the end of every request to get a slide show (your browser is redirected to the same url)
