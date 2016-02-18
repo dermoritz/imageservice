@@ -31,7 +31,7 @@ all relative to &lt;your machine's url : port&gt;
 
 * /next will give you a random image
 * /prev .. the last image returned
-* /update .. will parse all given folders again
+* /update .. will parse all given folders again - the response is synchron, so it might take some minutes if you parse large directories
 * /current .. reloads the current image
 * /&lt;filter string&gt; .. returns a random file matching the string (the file path must contain the string)
 
