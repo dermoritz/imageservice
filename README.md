@@ -33,7 +33,7 @@ all relative to <your machine's url : port>
 * /prev .. the last image returned
 * /update .. will parse all given folders again
 * /current .. reloads the current image
-* /<filter string> .. returns a random file matching the string (the file path must contain the string)
+* /&lt;filter string&gt; .. returns a random file matching the string (the file path must contain the string)
 
 ### additional features
 
