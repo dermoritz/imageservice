@@ -1,6 +1,9 @@
 language: java
 jdk:
 - oraclejdk8
+branches:
+  except:
+    - /^release\/.+/
 deploy:
   provider: releases
   api_key:
