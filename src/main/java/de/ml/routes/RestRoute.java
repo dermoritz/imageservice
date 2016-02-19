@@ -109,7 +109,7 @@ public class RestRoute extends RouteBuilder {
     }
 
     public enum History {
-        PREV, INFO, FILTER_INFO, CURRENT;
+        PREV, INFO, FILTER_INFO, CURRENT
     }
 
 }

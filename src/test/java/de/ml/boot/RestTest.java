@@ -28,7 +28,6 @@ public class RestTest {
     @Test
     public void testNext() {
         RestAssured.with()
-            .authentication().basic( "user1", "awdrg" )
             .get( "http://127.0.0.1:" + PORT + "/next" ).then().statusCode( 200 );
     }
 

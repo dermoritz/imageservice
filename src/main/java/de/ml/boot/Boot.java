@@ -39,8 +39,8 @@ public class Boot {
     private SimpleRegistry registry;
 
     @Inject
-    private Boot(CamelContext context, @Any Instance<RouteBuilder> routes, CamelMain main,
-                 @AllowedUsers Map<String, String> realm, SimpleRegistry registry, Logger log) throws Exception {
+    private Boot( CamelContext context, @Any Instance<RouteBuilder> routes, CamelMain main,
+            @AllowedUsers Map<String, String> realm, SimpleRegistry registry, Logger log ) throws Exception {
         this.realm = realm;
         this.registry = registry;
         this.log = log;
@@ -51,27 +51,33 @@ public class Boot {
 
         this.routes = routes;
         this.main = main;
-        this.context = Preconditions.checkNotNull(context);
+        this.context = Preconditions.checkNotNull( context );
         setupContext();
     }
 
     private void setupContext() throws Exception {
         registerUsers();
-        for (RouteBuilder routeBuilder : routes) {
-            context.addRoutes(routeBuilder);
+        for( RouteBuilder routeBuilder : routes ) {
+            context.addRoutes( routeBuilder );
         }
 
     }
 
-    private void registerUsers(){
-        registry.put(REALM_REG_KEY, realm);
-        for(Map.Entry<String, String> user : realm.entrySet()){
-            log.info("User " + user.getKey() + ":" + user.getValue() + " is allowed to access.");
+    private void registerUsers() {
+        if( !realm.isEmpty() ) {
+            registry.put( REALM_REG_KEY, realm );
+            for( Map.Entry<String, String> user : realm.entrySet() ) {
+                log.info( "User " + user.getKey() + ":" + user.getValue() + " is allowed to access." );
+            }
         }
+        else {
+            log.info("no users set, access is allowed for all.");
+        }
+
     }
 
-    public void start(@Observes ContainerInitialized event) throws Exception {
-        log.info("starting");
+    public void start( @Observes ContainerInitialized event ) throws Exception {
+        log.info( "starting" );
         main.enableHangupSupport();
         main.run();
     }
