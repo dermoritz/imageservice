@@ -21,7 +21,7 @@ Open your Browser and try:
 localhost:port/next
 ```
 
-The access is protected with basic auth. At the moment there is one hardcoded user: "user1:awdrg". Theres is an open issue to make this configurable.
+The access can be protected with basic auth. As default the user: "user1:awdrg" has access. but you could change the file users.txt to change or add users (each line one user). If you delete the file the access isn't protected anymore.
 
 You can provide multiple folders separated by `;`. Each folder will be scanned recursively and every file ending with .jpg will be provided via the service.
 
