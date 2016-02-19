@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Qualifier;
@@ -60,7 +62,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private Logger log;
 
-    private Random random = new Random();
+    private Random random = new SecureRandom();
 
     private ExecutorService exec;
 
@@ -109,7 +111,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private void fetchAllFiles() {
         //new random, new sequence
-        random = new Random();
+        random = new SecureRandom();;
         files.clear();
         cache.invalidateAll();
         for (File folder : folders) {
@@ -226,11 +228,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
         log.info("fetching files with " + inName + " in path...");
         ArrayList<Path> result = Lists.newArrayList();
         waitUntilFinished();
-        for (Path path : files) {
-            if (path.toString().toLowerCase().contains(inName.toLowerCase())) {
-                result.add(path);
-            }
-        }
+        result.addAll(files.stream().filter(path -> path.toString().toLowerCase().contains(inName.toLowerCase()))
+                           .collect(Collectors.toList()));
         return result;
     }
 
