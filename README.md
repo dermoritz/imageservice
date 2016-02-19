@@ -27,17 +27,18 @@ You can provide multiple folders separated by `;`. Each folder will be scanned r
 
 ## Provided endpoints
 
-all relative to <your machine's url : port>
+all relative to &lt;your machine's url : port&gt;
 
 * /next will give you a random image
 * /prev .. the last image returned
+* /update .. will parse all given folders again - the response is synchron, so it might take some minutes if you parse large directories
 * /current .. reloads the current image
-* /<filter string> .. returns a random file matching the string (the file path must contain the string)
+* /&lt;filter string&gt; .. returns a random file matching the string (the file path must contain the string)
 
-additional features
+### additional features
 
-* <filter string>/sort .. returns files matching the filter in order (sorted by path)
-* .../auto/<seconds> .. you can add this at the end of every request to get a slide show (your browser is redirected to the same url)
+* &lt;filter string&gt;/sort .. returns files matching the filter in order (sorted by path)
+* .../auto/&lt;seconds&gt; .. you can add this at the end of every request to get a slide show (your browser is redirected to the same url)
 
 example: `localhost/20151225/sort/auto/10` will give a slide show of all files that contain `20151225` in order.
 
