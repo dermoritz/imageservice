@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import de.ml.statistic.StatisticImpl;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
+import org.apache.camel.component.restlet.RestletComponent;
 import org.apache.camel.component.restlet.RestletEndpoint;
 import org.restlet.data.Method;
 
@@ -31,7 +32,8 @@ public class RestEndpointsProvider implements RestEndpoints {
         this.context = Preconditions.checkNotNull(context);
         this.users = Preconditions.checkNotNull(users);
         this.port = Preconditions.checkNotNull(port);
-
+        //http://camel.apache.org/restlet.html says this yields better performance due to this: https://github.com/restlet/restlet-framework-java/issues/996
+        context.getComponent("restlet", RestletComponent.class).setSynchronous(true);
     }
 
     /*
