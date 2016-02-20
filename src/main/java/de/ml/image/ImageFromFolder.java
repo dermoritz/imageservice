@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
@@ -51,6 +52,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 @ImageProviderImpl
 public class ImageFromFolder implements ImageProvider, Processor {
 
+    private final Provider<Random> randomProvider;
     private volatile Statistic statistic;
     private List<File> folders;
 
@@ -62,7 +64,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private Logger log;
 
-    private Random random = new SecureRandom();
+    private Random random;
 
     private ExecutorService exec;
 
@@ -71,7 +73,9 @@ public class ImageFromFolder implements ImageProvider, Processor {
     private Cache<String, List<Path>> cache;
 
     @Inject
-    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context, Statistic statistic) {
+    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context, Statistic statistic, Provider<Random>  randomProvider) {
+        random = randomProvider.get();
+        this.randomProvider = randomProvider;
         this.statistic = statistic;
         this.folders = folders;
         this.log = log;
@@ -111,7 +115,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private void fetchAllFiles() {
         //new random, new sequence
-        random = new SecureRandom();
+        random = randomProvider.get();
         files.clear();
         cache.invalidateAll();
         for (File folder : folders) {

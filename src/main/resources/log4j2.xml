@@ -7,11 +7,20 @@
         <File name="File" fileName="logs/output.log">
             <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
         </File>
+        <RollingFile name="RollingFile" fileName="logs/info.log"
+                     filePattern="logs/info_%d{yyyy-MM-dd}_%i.log">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
     </appenders>
     <Loggers>
         <Root level="info">
             <!--<AppenderRef ref="Console" level="error"/>-->
-            <AppenderRef ref="File" level="info"/>
+            <AppenderRef ref="RollingFile" level="info"/>
         </Root>
     </Loggers>
 </configuration>

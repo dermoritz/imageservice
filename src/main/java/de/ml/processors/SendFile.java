@@ -76,7 +76,7 @@ public class SendFile implements Processor {
                                                                                     String.class)),
                                      StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("Something wentt wrong: ", e);
+            throw new IllegalStateException("Something went wrong: ", e);
         }
     }
 
