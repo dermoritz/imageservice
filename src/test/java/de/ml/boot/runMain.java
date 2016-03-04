@@ -8,7 +8,7 @@ public class runMain {
 
     @Test
     public void run() {
-        org.jboss.weld.environment.se.StartMain.main(new String[] {getFolderOfResourceFolder("")});
+        org.jboss.weld.environment.se.StartMain.main(new String[] {getFolderOfResourceFolder("numbers")});
     }
 
 }

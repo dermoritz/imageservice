@@ -19,6 +19,8 @@ public interface RestEndpoints {
 
     Endpoint prev();
 
+    Endpoint prevOffset();
+
     Endpoint info();
 
     Endpoint current();

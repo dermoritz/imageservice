@@ -28,6 +28,7 @@ import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.routes.RestRoute;
 import de.ml.routes.RestRoute.History;
+import groovy.lang.MetaClassImpl.Index;
 
 @SendFileProc
 public class SendFile implements Processor {
@@ -91,8 +92,14 @@ public class SendFile implements Processor {
             }
             break;
         case PREV:
-            if (--currentIndex >= 0) {
-                setHeadersAndBody(exchange, history.get(currentIndex));
+            Integer offset = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_PREV_OFFSET_PARAMETER,
+                                                        Integer.class);
+            if(offset==null || offset < 0){
+                offset = 0;
+            }
+
+            if (--currentIndex - offset >= 0) {
+                setHeadersAndBody(exchange, history.get(currentIndex - offset));
             } else if (history.size() >= 0) {
                 setHeadersAndBody(exchange, history.get(0));
             } else {

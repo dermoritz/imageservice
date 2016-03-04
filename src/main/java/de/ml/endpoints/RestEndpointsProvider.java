@@ -18,6 +18,8 @@ import de.ml.boot.ArgsConfiguration.Port;
 
 public class RestEndpointsProvider implements RestEndpoints {
 
+    private static final String PREV_PATH = "/prev";
+    public static final String HEADER_PREV_OFFSET_PARAMETER = "prevOffset";
     private Map<String, String> users;
     private CamelContext context;
     private Integer port;
@@ -83,7 +85,12 @@ public class RestEndpointsProvider implements RestEndpoints {
      */
     @Override
     public Endpoint prev() {
-        return getRestEndpoint("/prev");
+        return getRestEndpoint(PREV_PATH);
+    }
+
+    @Override
+    public Endpoint prevOffset() {
+        return getRestEndpoint(PREV_PATH + "/{" + HEADER_PREV_OFFSET_PARAMETER + "}");
     }
 
     /*
@@ -178,5 +185,6 @@ public class RestEndpointsProvider implements RestEndpoints {
         endpoint.setRestletRealm(users);
         return endpoint;
     }
+
 
 }

@@ -18,6 +18,8 @@ import de.ml.processors.SetSortHeader.SetSortProc;
 import java.io.IOException;
 
 public class RestRoute extends RouteBuilder {
+    private static final String DIRECT_PREV = "direct:prev";
+
     private static final String DIRECT_SORT_AUTO = "direct:sortAuto";
 
     private static final String DIRECT_SORT = "direct:sort";
@@ -54,6 +56,8 @@ public class RestRoute extends RouteBuilder {
 
     private Processor setSortHeader;
 
+    private Endpoint prevOffset;
+
     @Inject
     private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
                       @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints, @SetSortProc Processor setSortHeader, Statistic statistic) {
@@ -72,6 +76,7 @@ public class RestRoute extends RouteBuilder {
         this.filterNameAuto = restEndpoints.filterNameAuto();
         this.filterNameInfo = restEndpoints.filterNameInfo();
         this.filterNameAutoTime = restEndpoints.filterNameAutoTime();
+        prevOffset = restEndpoints.prevOffset();
         filterNameSort = restEndpoints.filterNameSort();
         filterNameAutoSort = restEndpoints.filterNameAutoSort();
         filterNameAutoTimeSort = restEndpoints.filterNameAutoTimeSort();
@@ -95,7 +100,11 @@ public class RestRoute extends RouteBuilder {
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);
         from(update).process(imageProvider);
-        from(prev).setHeader(HISTORY_HEADER, constant(History.PREV)).process(sendFile);
+        //previous
+        from(DIRECT_PREV).setHeader(HISTORY_HEADER, constant(History.PREV)).process(sendFile);
+        from(prev).to(DIRECT_PREV);
+        from(prevOffset).to(DIRECT_PREV);
+
         from(info).setHeader(HISTORY_HEADER, constant(History.INFO)).process(sendFile);
         from(current).setHeader(HISTORY_HEADER, constant(History.CURRENT)).process(sendFile);
         from(filterName).to(DIRECT_NEXT);
