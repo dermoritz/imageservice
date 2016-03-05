@@ -28,7 +28,6 @@ import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.routes.RestRoute;
 import de.ml.routes.RestRoute.History;
-import groovy.lang.MetaClassImpl.Index;
 
 @SendFileProc
 public class SendFile implements Processor {
