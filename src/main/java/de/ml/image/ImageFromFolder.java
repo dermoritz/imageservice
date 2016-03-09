@@ -268,7 +268,11 @@ public class ImageFromFolder implements ImageProvider, Processor {
             currentSortedIterator = Iterators.cycle(list);
             currentIteratorName = inName.toLowerCase();
         }
-        return currentSortedIterator.next().toFile();
+        File nextFile = null;
+        if(currentSortedIterator.hasNext()){
+            nextFile =  currentSortedIterator.next().toFile();
+        }
+        return nextFile;
     }
 
     private List<Path> getCachedWithName(String inName){
