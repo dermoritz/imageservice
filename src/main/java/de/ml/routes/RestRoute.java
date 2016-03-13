@@ -24,7 +24,7 @@ public class RestRoute extends RouteBuilder {
 
     private static final String DIRECT_SORT = "direct:sort";
 
-    public static final String HISTORY_HEADER = "history";
+    public static final String MODE_HEADER = "history";
 
     private static final String DIRECT_NEXT = "direct:next";
     private static final String DIRECT_NEXT_AUTO = "direct:auto";
@@ -58,9 +58,14 @@ public class RestRoute extends RouteBuilder {
 
     private Endpoint prevOffset;
 
+    private Endpoint byIndex;
+
+    private Endpoint maxIndex;
+
     @Inject
     private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
-                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints, @SetSortProc Processor setSortHeader, Statistic statistic) {
+                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints,
+                      @SetSortProc Processor setSortHeader, Statistic statistic) {
         this.sendFile = sendFile;
         this.setAutoHeader = setAutoHeader;
         this.imageProvider = imageProvider;
@@ -76,6 +81,8 @@ public class RestRoute extends RouteBuilder {
         this.filterNameAuto = restEndpoints.filterNameAuto();
         this.filterNameInfo = restEndpoints.filterNameInfo();
         this.filterNameAutoTime = restEndpoints.filterNameAutoTime();
+        byIndex = restEndpoints.byIndex();
+        maxIndex = restEndpoints.maxIndex();
         prevOffset = restEndpoints.prevOffset();
         filterNameSort = restEndpoints.filterNameSort();
         filterNameAutoSort = restEndpoints.filterNameAutoSort();
@@ -87,38 +94,46 @@ public class RestRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        //ioexception is thrown if client cancels loading or reloads before finished.
+        // ioexception is thrown if client cancels loading or reloads before
+        // finished.
         onException(IOException.class).handled(true);
         intercept().when(header(HTTP_URI_HEADER).endsWith("favicon.ico")).setHeader(Exchange.HTTP_RESPONSE_CODE)
                    .constant(HttpStatus.SC_NOT_FOUND).stop();
         from(DIRECT_NEXT_AUTO).process(setAutoHeader).to(DIRECT_NEXT);
         from(DIRECT_SORT).process(setSortHeader).to(DIRECT_NEXT);
         from(DIRECT_SORT_AUTO).process(setAutoHeader).process(setSortHeader).to(DIRECT_NEXT);
+        // statistic
         from(avgDistance).process((Processor) statistic);
         from(distChart).process((Processor) statistic);
+        // by index
+        from(byIndex).setHeader(MODE_HEADER, constant(Mode.INDEX)).to(DIRECT_NEXT);
+        from(maxIndex).setHeader(MODE_HEADER, constant(Mode.INDEX)).to(DIRECT_NEXT);
+        // next
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);
         from(update).process(imageProvider);
-        //previous
-        from(DIRECT_PREV).setHeader(HISTORY_HEADER, constant(History.PREV)).process(sendFile);
+        // previous
+        from(DIRECT_PREV).setHeader(MODE_HEADER, constant(Mode.PREV)).process(sendFile);
         from(prev).to(DIRECT_PREV);
         from(prevOffset).to(DIRECT_PREV);
-
-        from(info).setHeader(HISTORY_HEADER, constant(History.INFO)).process(sendFile);
-        from(current).setHeader(HISTORY_HEADER, constant(History.CURRENT)).process(sendFile);
+        // info
+        from(info).setHeader(MODE_HEADER, constant(Mode.INFO)).process(sendFile);
+        from(current).setHeader(MODE_HEADER, constant(Mode.CURRENT)).process(sendFile);
+        // filter
         from(filterName).to(DIRECT_NEXT);
         from(filterNameSort).to(DIRECT_SORT);
         from(filterNameAuto).to(DIRECT_NEXT_AUTO);
         from(filterNameAutoSort).to(DIRECT_SORT_AUTO);
-        from(filterNameInfo).setHeader(HISTORY_HEADER, constant(History.FILTER_INFO)).process(sendFile);
+        from(filterNameInfo).setHeader(MODE_HEADER, constant(Mode.FILTER_INFO)).process(sendFile);
         from(filterNameAutoTime).to(DIRECT_NEXT_AUTO);
         from(filterNameAutoTimeSort).to(DIRECT_SORT_AUTO);
+        //
         from(DIRECT_NEXT).process(sendFile);
     }
 
-    public enum History {
-        PREV, INFO, FILTER_INFO, CURRENT
+    public enum Mode {
+                      PREV, INFO, FILTER_INFO, CURRENT, INDEX
     }
 
 }

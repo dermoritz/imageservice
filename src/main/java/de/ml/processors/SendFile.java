@@ -27,7 +27,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.image.ImageProvider;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.routes.RestRoute;
-import de.ml.routes.RestRoute.History;
+import de.ml.routes.RestRoute.Mode;
 
 @SendFileProc
 public class SendFile implements Processor {
@@ -43,7 +43,7 @@ public class SendFile implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        History historyHeader = exchange.getIn().getHeader(RestRoute.HISTORY_HEADER, History.class);
+        Mode historyHeader = exchange.getIn().getHeader(RestRoute.MODE_HEADER, Mode.class);
         Boolean sort = exchange.getIn().getHeader(SetSortHeader.SORT_HEADER, Boolean.class);
         if (historyHeader != null) {
             handleHistory(historyHeader, exchange);
@@ -80,7 +80,7 @@ public class SendFile implements Processor {
         }
     }
 
-    private void handleHistory(History historyHeader, Exchange exchange) {
+    private void handleHistory(Mode historyHeader, Exchange exchange) {
         switch (historyHeader) {
         case INFO:
             if (currentIndex >= 0 && history.size() > 0) {
@@ -117,6 +117,16 @@ public class SendFile implements Processor {
                 setHeadersAndBody(exchange, history.get(currentIndex));
             } else {
                 exchange.getIn().setBody("nix");
+            }
+            break;
+        case INDEX:
+            Integer index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
+                                       Integer.class);
+            if (index == null) {
+                setNoCacheHeaders(exchange);
+                exchange.getIn().setBody(ip.maxIndex());
+            } else {
+                setHeadersAndBody(exchange, ip.byIndex(index));
             }
             break;
         default:

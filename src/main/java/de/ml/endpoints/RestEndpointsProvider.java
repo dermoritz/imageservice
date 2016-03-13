@@ -28,13 +28,17 @@ public class RestEndpointsProvider implements RestEndpoints {
     public static final String AUTO_PATH = "auto";
     public static final String INFO_PATH = "info";
     public static final String SORT_PATH = "sort";
+    public static final String INDEX_PATH = "index";
+    public static final String HEADER_INDEX_PARAMETER = "index";
 
     @Inject
     private RestEndpointsProvider(CamelContext context, @AllowedUsers Map<String, String> users, @Port Integer port) {
         this.context = Preconditions.checkNotNull(context);
         this.users = Preconditions.checkNotNull(users);
         this.port = Preconditions.checkNotNull(port);
-        //http://camel.apache.org/restlet.html says this yields better performance due to this: https://github.com/restlet/restlet-framework-java/issues/996
+        // http://camel.apache.org/restlet.html says this yields better
+        // performance due to this:
+        // https://github.com/restlet/restlet-framework-java/issues/996
         context.getComponent("restlet", RestletComponent.class).setSynchronous(true);
     }
 
@@ -170,11 +174,22 @@ public class RestEndpointsProvider implements RestEndpoints {
     }
 
     @Override
+    public Endpoint byIndex() {
+        return getRestEndpoint("/" + INDEX_PATH + "/{" + HEADER_INDEX_PARAMETER + "}");
+    }
+
+    @Override
+    public Endpoint maxIndex() {
+        return getRestEndpoint("/" + INDEX_PATH );
+    }
+
+    @Override
     public Endpoint statisticAvgDistance() {
         return getRestEndpoint("/statistic/" + StatisticImpl.AVG_DISTANCE_ENDPOINT);
     }
 
-    @Override public Endpoint statisticDistChart() {
+    @Override
+    public Endpoint statisticDistChart() {
         return getRestEndpoint("/statistic/" + StatisticImpl.DISTRIBUTION_CHART);
     }
 
@@ -185,6 +200,5 @@ public class RestEndpointsProvider implements RestEndpoints {
         endpoint.setRestletRealm(users);
         return endpoint;
     }
-
 
 }

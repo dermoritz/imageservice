@@ -68,12 +68,13 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private ExecutorService exec;
 
-    private Map<File,Future<Void>> currentTasks = Maps.newHashMap();
+    private Map<File, Future<Void>> currentTasks = Maps.newHashMap();
 
     private Cache<String, List<Path>> cache;
 
     @Inject
-    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context, Statistic statistic, Provider<Random>  randomProvider) {
+    private ImageFromFolder(@Folder List<File> folders, Logger log, CamelContext context, Statistic statistic,
+                            Provider<Random> randomProvider) {
         random = randomProvider.get();
         this.randomProvider = randomProvider;
         this.statistic = statistic;
@@ -114,7 +115,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     }
 
     private void fetchAllFiles() {
-        //new random, new sequence
+        // new random, new sequence
         random = randomProvider.get();
         files.clear();
         cache.invalidateAll();
@@ -124,7 +125,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
                 currentTask = exec.submit(new FetchFilesTask(folder));
                 currentTasks.put(folder, currentTask);
             } else {
-                log.info("Reject to update folder "+folder +", previous update not finished yet.");
+                log.info("Reject to update folder " + folder + ", previous update not finished yet.");
             }
         }
     }
@@ -133,9 +134,10 @@ public class ImageFromFolder implements ImageProvider, Processor {
     public void process(Exchange exchange) throws Exception {
         int oldFileCount = files.size();
         fetchAllFiles();
-        //wait for result
+        // wait for result
         waitUntilFinished();
-        String message = "Update yielded " + (files.size()-oldFileCount) + " files. Total file count now: " + files.size();
+        String message = "Update yielded " + (files.size() - oldFileCount) + " files. Total file count now: "
+                         + files.size();
         log.info(message);
         exchange.getIn().setBody(message);
     }
@@ -145,7 +147,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
             try {
                 task.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new IllegalStateException("Problem on waiting for file tasks: ",e);
+                throw new IllegalStateException("Problem on waiting for file tasks: ", e);
             }
         }
     }
@@ -154,15 +156,15 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
         private File folder;
 
-        private FetchFilesTask(File folder){
+        private FetchFilesTask(File folder) {
             this.folder = folder;
         }
 
         @Override
         public Void call() throws Exception {
-            log.info("Starting file update on " +  folder);
+            log.info("Starting file update on " + folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
-            int oldCount =  files.size();
+            int oldCount = files.size();
             try {
                 Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
 
@@ -224,8 +226,6 @@ public class ImageFromFolder implements ImageProvider, Processor {
             return ImageFromFolder.this;
         }
 
-
-
     }
 
     private List<Path> getFilesWithNameContains(String inName) {
@@ -237,18 +237,16 @@ public class ImageFromFolder implements ImageProvider, Processor {
         return result;
     }
 
-
     @Override
     public File getWithName(String inName) {
-            Path file = getRandomOf(getCachedWithName(inName));
-            return file == null ? null : file.toFile();
+        Path file = getRandomOf(getCachedWithName(inName));
+        return file == null ? null : file.toFile();
     }
 
     @Override
     public int getCountWithName(String inName) {
-            return getCachedWithName(inName).size();
+        return getCachedWithName(inName).size();
     }
-
 
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
@@ -259,28 +257,42 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     @Override
     public File getWithNameSort(String inName) {
-        if(Strings.isNullOrEmpty(inName)){
+        if (Strings.isNullOrEmpty(inName)) {
             throw new IllegalArgumentException("inName must be set to a non empty string.");
         }
-        if(!inName.toLowerCase().equals(currentIteratorName)){
+        if (!inName.toLowerCase().equals(currentIteratorName)) {
             List<Path> list = getCachedWithName(inName);
             Collections.sort(list);
             currentSortedIterator = Iterators.cycle(list);
             currentIteratorName = inName.toLowerCase();
         }
         File nextFile = null;
-        if(currentSortedIterator.hasNext()){
-            nextFile =  currentSortedIterator.next().toFile();
+        if (currentSortedIterator.hasNext()) {
+            nextFile = currentSortedIterator.next().toFile();
         }
         return nextFile;
     }
 
-    private List<Path> getCachedWithName(String inName){
+    private List<Path> getCachedWithName(String inName) {
         try {
             return cache.get(inName, () -> getFilesWithNameContains(inName));
         } catch (ExecutionException e) {
             throw new IllegalStateException("Problem on loading list from cache: ", e);
         }
+    }
+
+    @Override
+    public int maxIndex() {
+        return files.size() - 1;
+    }
+
+    @Override
+    public File byIndex(int index) {
+        if(index<files.size() && files.get(index).toFile().canRead()){
+            return files.get(index).toFile();
+        } else {
+            return null;
+        } 
     }
 
 }
