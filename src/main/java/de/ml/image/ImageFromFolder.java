@@ -11,14 +11,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -30,13 +28,13 @@ import javax.inject.Provider;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
-import de.ml.statistic.Statistic;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.ThreadPoolBuilder;
 import org.slf4j.Logger;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -47,6 +45,7 @@ import com.google.common.collect.Maps;
 
 import de.ml.boot.ArgsConfiguration.Folder;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
+import de.ml.statistic.Statistic;
 
 @Singleton
 @ImageProviderImpl
@@ -68,7 +67,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     private ExecutorService exec;
 
-    private Map<File, Future<Void>> currentTasks = Maps.newHashMap();
+    private Map<File, Future<?>> currentTasks = Maps.newHashMap();
 
     private Cache<String, List<Path>> cache;
 
@@ -120,7 +119,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         files.clear();
         cache.invalidateAll();
         for (File folder : folders) {
-            Future<Void> currentTask = currentTasks.get(folder);
+            Future<?> currentTask = currentTasks.get(folder);
             if (currentTask == null || currentTask.isDone() || currentTask.isCancelled()) {
                 currentTask = exec.submit(new FetchFilesTask(folder));
                 currentTasks.put(folder, currentTask);
@@ -143,7 +142,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     }
 
     private void waitUntilFinished() {
-        for (Future<Void> task : currentTasks.values()) {
+        for (Future<?> task : currentTasks.values()) {
             try {
                 task.get();
             } catch (InterruptedException | ExecutionException e) {
@@ -152,7 +151,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         }
     }
 
-    private class FetchFilesTask implements Callable<Void> {
+    private class FetchFilesTask implements Runnable {
 
         private File folder;
 
@@ -161,7 +160,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
         }
 
         @Override
-        public Void call() throws Exception {
+        public void run() {
             log.info("Starting file update on " + folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
             int oldCount = files.size();
@@ -185,7 +184,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
                      + stopwatch.elapsed(TimeUnit.SECONDS)
                      + "s. Total file count: " + files.size());
             statistic.setCount(files.size());
-            return null;
+            Collections.sort(files);
         }
 
         @Override
@@ -292,7 +291,17 @@ public class ImageFromFolder implements ImageProvider, Processor {
             return files.get(index).toFile();
         } else {
             return null;
-        } 
+        }
+    }
+
+    @Override
+    public File filterByIndex(String filter, int index) {
+        List<Path> list = getCachedWithName(filter);
+        File result = null;
+        if(index >=0 && index<list.size()){
+            result = list.get(index).toFile();
+        }
+        return result;
     }
 
 }

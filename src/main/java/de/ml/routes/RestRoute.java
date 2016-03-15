@@ -62,6 +62,8 @@ public class RestRoute extends RouteBuilder {
 
     private Endpoint maxIndex;
 
+    private Endpoint byIndexFiltered;
+
     @Inject
     private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
                       @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints,
@@ -83,6 +85,7 @@ public class RestRoute extends RouteBuilder {
         this.filterNameAutoTime = restEndpoints.filterNameAutoTime();
         byIndex = restEndpoints.byIndex();
         maxIndex = restEndpoints.maxIndex();
+        byIndexFiltered = restEndpoints.byIndexFiltered();
         prevOffset = restEndpoints.prevOffset();
         filterNameSort = restEndpoints.filterNameSort();
         filterNameAutoSort = restEndpoints.filterNameAutoSort();
@@ -108,6 +111,7 @@ public class RestRoute extends RouteBuilder {
         // by index
         from(byIndex).setHeader(MODE_HEADER, constant(Mode.INDEX)).to(DIRECT_NEXT);
         from(maxIndex).setHeader(MODE_HEADER, constant(Mode.INDEX)).to(DIRECT_NEXT);
+        from(byIndexFiltered).setHeader(MODE_HEADER, constant(Mode.INDEX_FILTERED)).to(DIRECT_NEXT);
         // next
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
@@ -133,7 +137,7 @@ public class RestRoute extends RouteBuilder {
     }
 
     public enum Mode {
-                      PREV, INFO, FILTER_INFO, CURRENT, INDEX
+                      PREV, INFO, FILTER_INFO, CURRENT, INDEX, INDEX_FILTERED
     }
 
 }

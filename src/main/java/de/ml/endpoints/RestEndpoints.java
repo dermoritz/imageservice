@@ -38,9 +38,11 @@ public interface RestEndpoints {
     Endpoint filterNameAutoSort();
 
     Endpoint filterNameAutoTimeSort();
-    
+
     Endpoint byIndex();
-    
+
+    Endpoint byIndexFiltered();
+
     Endpoint maxIndex();
 
     Endpoint statisticAvgDistance();

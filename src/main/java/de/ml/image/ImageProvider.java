@@ -30,17 +30,25 @@ public interface ImageProvider {
      * @return count of files matching filter
      */
     int getCountWithName(String inName);
-    
+
     /**
-     * 
+     *
      * @return max index to be retrieved. total count of images is maxIndex+1.
      */
     int maxIndex();
-    
+
     /**
-     * 
+     *
      * @param index 0..maxIndex
      * @return image with given index
      */
     File byIndex(int index);
+
+    /**
+     *
+     * @param filter filter string
+     * @param index index of file
+     * @return File with given index within filtered list. Max index is getCountWithName-1
+     */
+    File filterByIndex(String filter, int index);
 }

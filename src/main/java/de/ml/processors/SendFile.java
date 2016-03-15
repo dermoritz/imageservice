@@ -35,6 +35,7 @@ public class SendFile implements Processor {
     private ImageProvider ip;
     private List<File> history = new ArrayList<>();
     private int currentIndex = 0;
+    private String header;
 
     @Inject
     private SendFile(@ImageProviderImpl ImageProvider ip) {
@@ -93,7 +94,7 @@ public class SendFile implements Processor {
         case PREV:
             Integer offset = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_PREV_OFFSET_PARAMETER,
                                                         Integer.class);
-            if(offset==null || offset < 0){
+            if (offset == null || offset < 0) {
                 offset = 0;
             }
 
@@ -121,12 +122,22 @@ public class SendFile implements Processor {
             break;
         case INDEX:
             Integer index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
-                                       Integer.class);
+                                                       Integer.class);
             if (index == null) {
                 setNoCacheHeaders(exchange);
                 exchange.getIn().setBody(ip.maxIndex());
             } else {
                 setHeadersAndBody(exchange, ip.byIndex(index));
+            }
+            break;
+        case INDEX_FILTERED:
+            String filter = getNameParameter(exchange);
+            index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
+                                               Integer.class);
+            if (filter != null && index != null) {
+                exchange.getIn().setBody(ip.filterByIndex(filter, index));
+            } else {
+                exchange.getIn().setBody(null);
             }
             break;
         default:
