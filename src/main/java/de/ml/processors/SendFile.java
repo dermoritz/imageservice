@@ -125,7 +125,7 @@ public class SendFile implements Processor {
                                                        Integer.class);
             if (index == null) {
                 setNoCacheHeaders(exchange);
-                exchange.getIn().setBody(ip.maxIndex());
+                exchange.getIn().setBody("nix");
             } else {
                 setHeadersAndBody(exchange, ip.byIndex(index));
             }
@@ -139,6 +139,18 @@ public class SendFile implements Processor {
             } else {
                 exchange.getIn().setBody(null);
             }
+            break;
+        case INDEX_INFO:
+            index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
+                                                       Integer.class);
+            if (index == null) {
+                setNoCacheHeaders(exchange);
+                exchange.getIn().setBody("nix");
+            } else {
+                setNoCacheHeaders(exchange);
+                exchange.getIn().setBody(ip.byIndex(index).getAbsolutePath());
+            }
+            
             break;
         default:
             throw new IllegalArgumentException("Unknown header content: " + historyHeader);
