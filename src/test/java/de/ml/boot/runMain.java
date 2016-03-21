@@ -11,4 +11,9 @@ public class runMain {
         org.jboss.weld.environment.se.StartMain.main(new String[] {getFolderOfResourceFolder("numbers")});
     }
 
+    @Test
+    public void runWithFolder() {
+        org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1"});
+    }
+
 }
