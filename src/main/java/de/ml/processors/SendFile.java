@@ -110,7 +110,7 @@ public class SendFile implements Processor {
             String inName = getNameParameter(exchange);
             if (!Strings.isNullOrEmpty(inName)) {
                 setNoCacheHeaders(exchange);
-                exchange.getIn().setBody(ip.getCountWithName(inName) + " files contain " + "\"" + inName + "\"");
+                exchange.getIn().setBody(ip.getCountWithName(inName));
             }
             break;
         case CURRENT:

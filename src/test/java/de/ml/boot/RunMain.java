@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import static de.ml.boot.Util.*;
 
-public class runMain {
+public class RunMain {
 
     @Test
     public void run() {
