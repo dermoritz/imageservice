@@ -40,10 +40,12 @@ public interface RestEndpoints {
     Endpoint filterNameAutoTimeSort();
 
     Endpoint byIndex();
-    
+
     Endpoint byIndexInfo();
 
     Endpoint byIndexFiltered();
+
+    Endpoint byIndexFilteredInfo();
 
     Endpoint maxIndex();
 

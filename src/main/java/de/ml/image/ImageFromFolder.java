@@ -247,12 +247,6 @@ public class ImageFromFolder implements ImageProvider, Processor {
         return getCachedWithName(inName).size();
     }
 
-    @Qualifier
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE})
-    public @interface ImageProviderImpl {
-
-    }
 
     @Override
     public File getWithNameSort(String inName) {
@@ -304,4 +298,10 @@ public class ImageFromFolder implements ImageProvider, Processor {
         return result;
     }
 
+    @Qualifier
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE})
+    public @interface ImageProviderImpl {
+
+    }
 }

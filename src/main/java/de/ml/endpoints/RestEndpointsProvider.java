@@ -31,6 +31,7 @@ public class RestEndpointsProvider implements RestEndpoints {
     public static final String INDEX_PATH = "index";
     public static final String INDEX_FILTER_PATH = "indexFilter";
     public static final String INDEX_INFO_PATH = "indexInfo";
+    private static final String INDEX_FILTER_INFO = "indexFilterInfo";
     public static final String HEADER_INDEX_PARAMETER = "index";
 
     @Inject
@@ -193,9 +194,14 @@ public class RestEndpointsProvider implements RestEndpoints {
     @Override
     public Endpoint byIndexInfo() {
         return getRestEndpoint("/" + INDEX_INFO_PATH + "/{" + HEADER_INDEX_PARAMETER + "}");
-        
+
     }
-    
+
+    @Override
+    public Endpoint byIndexFilteredInfo() {
+        return getRestEndpoint("/" + INDEX_FILTER_INFO + "/{" + HEADER_NAME_PARAMETER + "}/{" + HEADER_INDEX_PARAMETER + "}");
+    }
+
     @Override
     public Endpoint statisticAvgDistance() {
         return getRestEndpoint("/statistic/" + StatisticImpl.AVG_DISTANCE_ENDPOINT);
@@ -213,7 +219,5 @@ public class RestEndpointsProvider implements RestEndpoints {
         endpoint.setRestletRealm(users);
         return endpoint;
     }
-
-
 
 }
