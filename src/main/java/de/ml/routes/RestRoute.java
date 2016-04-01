@@ -119,7 +119,7 @@ public class RestRoute extends RouteBuilder {
         from(maxIndex).setHeader(MODE_HEADER, constant(Mode.INDEX)).to(DIRECT_NEXT);
         from(byIndexFiltered).setHeader(MODE_HEADER, constant(Mode.INDEX_FILTERED)).to(DIRECT_NEXT);
         from(byIndexInfo).setHeader(MODE_HEADER, constant(Mode.INDEX_INFO)).to(DIRECT_NEXT);
-        from(byIndexInfo).setHeader(MODE_HEADER, constant(Mode.INDEX_FILTER_INFO)).to(DIRECT_NEXT);
+        from(byIndexFilteredInfo).setHeader(MODE_HEADER, constant(Mode.INDEX_FILTER_INFO)).to(DIRECT_NEXT);
         // next
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);

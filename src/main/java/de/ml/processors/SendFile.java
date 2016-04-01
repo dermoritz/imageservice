@@ -135,7 +135,7 @@ public class SendFile implements Processor {
             index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
                                                Integer.class);
             if (filter != null && index != null) {
-                exchange.getIn().setBody(ip.filterByIndex(filter, index));
+                setHeadersAndBody(exchange, ip.filterByIndex(filter, index));
             } else {
                 exchange.getIn().setBody(null);
             }
