@@ -6,11 +6,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.nio.file.FileVisitResult;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -22,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -34,7 +34,6 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.ThreadPoolBuilder;
 import org.slf4j.Logger;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -50,7 +49,8 @@ import de.ml.statistic.Statistic;
 @Singleton
 @ImageProviderImpl
 public class ImageFromFolder implements ImageProvider, Processor {
-
+    private static final PathMatcher IMAGE_FILE_PATTERN = FileSystems.getDefault()
+                                                                     .getPathMatcher("glob:*.{jpg,jpeg,png,gif,bmp}");
     private final Provider<Random> randomProvider;
     private volatile Statistic statistic;
     private List<File> folders;
@@ -164,18 +164,12 @@ public class ImageFromFolder implements ImageProvider, Processor {
             log.info("Starting file update on " + folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
             int oldCount = files.size();
-            try {
-                Files.walkFileTree(folder.toPath(), new SimpleFileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!attrs.isDirectory() && file.getFileName().toString().toLowerCase().endsWith("jpg")) {
-                            files.add(file);
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                });
+            try (Stream<Path> fileStream = Files.find(folder.toPath(),
+                                                      Integer.MAX_VALUE,
+                                                      (path, attr) -> attr.isRegularFile()
+                                                                      && IMAGE_FILE_PATTERN.matches(path.getFileName()))
+                                                .sorted()) {
+                files.addAll( fileStream.collect(Collectors.toList()) );
             } catch (IOException e) {
                 throw new IllegalArgumentException("Problem reading folder: ", e);
             }
@@ -247,7 +241,6 @@ public class ImageFromFolder implements ImageProvider, Processor {
         return getCachedWithName(inName).size();
     }
 
-
     @Override
     public File getWithNameSort(String inName) {
         if (Strings.isNullOrEmpty(inName)) {
@@ -281,7 +274,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
     @Override
     public File byIndex(int index) {
-        if(index<files.size() && files.get(index).toFile().canRead()){
+        if (index < files.size() && files.get(index).toFile().canRead()) {
             return files.get(index).toFile();
         } else {
             return null;
@@ -292,7 +285,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     public File filterByIndex(String filter, int index) {
         List<Path> list = getCachedWithName(filter);
         File result = null;
-        if(index >=0 && index<list.size()){
+        if (index >= 0 && index < list.size()) {
             result = list.get(index).toFile();
         }
         return result;
