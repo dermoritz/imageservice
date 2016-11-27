@@ -31,7 +31,7 @@ public class ArgsConfiguration {
     private Logger log;
 
     @Inject
-    private ArgsConfiguration(@Parameters List<String> args, Logger log) {
+    private ArgsConfiguration(@Parameters List<String> args) {
         this.args = args;
         checkArgument(args.size() > 0, "Missing argument to specify folder.");
         folders = checkFolder(Arrays.asList(args.get(0).split(FOLDER_DELIMITER)));

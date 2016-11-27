@@ -124,7 +124,7 @@ public class RestRoute extends RouteBuilder {
         from(next).to(DIRECT_NEXT);
         from(nextAuto).to(DIRECT_NEXT_AUTO);
         from(nextAutoTime).to(DIRECT_NEXT_AUTO);
-        from(update).process(imageProvider);
+        from(update).to(UpdateImages.UPDATE_PLUG);
         // previous
         from(DIRECT_PREV).setHeader(MODE_HEADER, constant(Mode.PREV)).process(sendFile);
         from(prev).to(DIRECT_PREV);
