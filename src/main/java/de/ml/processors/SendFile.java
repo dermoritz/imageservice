@@ -29,13 +29,14 @@ import de.ml.processors.SendFile.SendFileProc;
 import de.ml.routes.RestRoute;
 import de.ml.routes.RestRoute.Mode;
 
+import static com.google.common.base.Preconditions.*;
+
 @SendFileProc
 public class SendFile implements Processor {
 
     private ImageProvider ip;
     private List<File> history = new ArrayList<>();
     private int currentIndex = 0;
-    private String header;
 
     @Inject
     private SendFile(@ImageProviderImpl ImageProvider ip) {
@@ -123,11 +124,15 @@ public class SendFile implements Processor {
         case INDEX:
             Integer index = exchange.getIn().getHeader(RestEndpointsProvider.HEADER_INDEX_PARAMETER,
                                                        Integer.class);
+
             if (index == null) {
                 setNoCacheHeaders(exchange);
                 exchange.getIn().setBody(ip.maxIndex());
-            } else {
+            } else if (ip.byIndex(index) != null) {
                 setHeadersAndBody(exchange, ip.byIndex(index));
+            } else {
+                setNoCacheHeaders(exchange);
+                exchange.getIn().setBody("No image found for index " + index + " + max index is " + ip.maxIndex());
             }
             break;
         case INDEX_FILTERED:
@@ -169,6 +174,8 @@ public class SendFile implements Processor {
     }
 
     private void setHeadersAndBody(Exchange exchange, File file) {
+        checkNotNull(exchange);
+        checkNotNull(file);
         try {
             exchange.getIn().setHeader(Exchange.CONTENT_TYPE, Files.probeContentType(file.toPath()));
         } catch (IOException e) {
