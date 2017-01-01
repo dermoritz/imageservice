@@ -6,7 +6,7 @@
     <name>imageService</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <camel.version>2.16.0</camel.version>
+        <camel.version>2.18.1</camel.version>
         <log4j.version>2.4.1</log4j.version>
     </properties>
     <dependencies>
@@ -36,6 +36,12 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-restlet</artifactId>
             <version>${camel.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-swagger-java</artifactId>
+            <version>${camel.version}</version>
+            <!-- use the same version as your Camel core version -->
         </dependency>
         <!-- logging -->
         <dependency>
