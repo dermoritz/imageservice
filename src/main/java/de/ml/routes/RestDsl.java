@@ -33,7 +33,7 @@ public class RestDsl extends RouteBuilder {
                 .apiProperty("api.title", "Imageservice REST Api");
 
         rest("/image")
-                .get("/next").to(DIRECT_NEXT);
+                .get("/next").description("Returns random image.").to(DIRECT_NEXT);
 
         from(DIRECT_NEXT).process(sendFile);
     }

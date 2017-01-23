@@ -20,6 +20,7 @@ public class RestEndpointsProvider implements RestEndpoints {
 
     private static final String PREV_PATH = "/prev";
     public static final String HEADER_PREV_OFFSET_PARAMETER = "prevOffset";
+    public static final String NEXT = "next";
     private Map<String, String> users;
     private CamelContext context;
     private Integer port;
@@ -52,7 +53,7 @@ public class RestEndpointsProvider implements RestEndpoints {
      */
     @Override
     public Endpoint next() {
-        return getRestEndpoint("/next");
+        return getRestEndpoint("/" + NEXT);
     }
 
     /*
@@ -62,7 +63,7 @@ public class RestEndpointsProvider implements RestEndpoints {
      */
     @Override
     public Endpoint nextAuto() {
-        return getRestEndpoint("/next/" + AUTO_PATH);
+        return getRestEndpoint("/" + NEXT + "/" + AUTO_PATH);
     }
 
     /*
@@ -72,7 +73,7 @@ public class RestEndpointsProvider implements RestEndpoints {
      */
     @Override
     public Endpoint nextAutoTime() {
-        return getRestEndpoint("/next/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}");
+        return getRestEndpoint("/" + NEXT + "/" + AUTO_PATH + "/{" + HEADER_AUTO_PARAMETER + "}");
     }
 
     /*

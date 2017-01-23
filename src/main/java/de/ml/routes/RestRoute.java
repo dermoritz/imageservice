@@ -141,7 +141,7 @@ public class RestRoute extends RouteBuilder {
         from(filterNameAutoTime).to(DIRECT_NEXT_AUTO);
         from(filterNameAutoTimeSort).to(DIRECT_SORT_AUTO);
         //
-        from(DIRECT_NEXT).process(sendFile);
+        from(DIRECT_NEXT).process(sendFile).setHeader("Access-Control-Allow-Origin", constant("*"));
     }
 
     public enum Mode {
