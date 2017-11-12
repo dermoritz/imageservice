@@ -78,7 +78,6 @@ public class Boot {
 
     public void start( @Observes ContainerInitialized event ) throws Exception {
         log.info( "starting" );
-        main.enableHangupSupport();
         main.run();
     }
 
