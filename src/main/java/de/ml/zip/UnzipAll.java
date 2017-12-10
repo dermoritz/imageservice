@@ -49,8 +49,12 @@ public class UnzipAll implements Runnable {
 
     private void unzip(Path zipFile) {
         LOG.info("Unzipping " + zipFile);
-        ZipUtil.explode(zipFile.toFile());
-        LOG.info("Finished unzipping and deleted " + zipFile);
+        try {
+            ZipUtil.explode(zipFile.toFile());
+            LOG.info("Finished unzipping and deleted " + zipFile);
+        } catch (Exception e) {
+            LOG.error("Problem unzipping file: " + zipFile + " cause: ", e);
+        }
         unzipped.add(zipFile);
     }
 
