@@ -13,7 +13,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 
 public class UpdateImages extends RouteBuilder {
 
-    public static final String UPDATE_PLUG = "direct:update";
+    public static final String UPDATE_PLUG = "direct:updateAll";
     private final Processor unzip;
     private Processor update;
     private Endpoint updateTrigger;
@@ -27,7 +27,7 @@ public class UpdateImages extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from(updateTrigger).log(LoggingLevel.INFO, "Periodic update triggered.").to(UPDATE_PLUG);
+        from(updateTrigger).log(LoggingLevel.INFO, "Periodic updateAll triggered.").to(UPDATE_PLUG);
         from(UPDATE_PLUG).process(unzip).process(update);
 
     }

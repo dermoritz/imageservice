@@ -28,7 +28,7 @@ public class TriggerEndpointProvider {
     @Produces
     @TriggerEndpoint
     private Endpoint getTriggerEndpoint(){
-        TimerEndpoint timer = context.getEndpoint("timer:update", TimerEndpoint.class);
+        TimerEndpoint timer = context.getEndpoint("timer:updateAll", TimerEndpoint.class);
         timer.setDelay(TWENTY_FOUR_HOURS);
         timer.setPeriod(TWENTY_FOUR_HOURS);
         return timer;

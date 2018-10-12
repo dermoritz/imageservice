@@ -9,7 +9,7 @@ import java.util.Map;
 public interface Statistic {
     /**
      * updates statistic
-     * @param index index to update statistic
+     * @param index index to updateAll statistic
      */
     void update(int index);
 

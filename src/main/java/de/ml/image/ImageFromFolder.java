@@ -124,7 +124,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
                 currentTask = exec.submit(new FetchFilesTask(folder));
                 currentTasks.put(folder, currentTask);
             } else {
-                log.info("Reject to update folder " + folder + ", previous update not finished yet.");
+                log.info("Reject to updateAll folder " + folder + ", previous updateAll not finished yet.");
             }
         }
     }
@@ -161,7 +161,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
         @Override
         public void run() {
-            log.info("Starting file update on " + folder);
+            log.info("Starting file updateAll on " + folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
             int oldCount = files.size();
             try (Stream<Path> fileStream = Files.find(folder.toPath(),

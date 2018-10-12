@@ -1,8 +1,9 @@
 package de.ml.routes;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 
-import de.ml.statistic.Statistic;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -14,8 +15,7 @@ import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 import de.ml.processors.SetSortHeader.SetSortProc;
-
-import java.io.IOException;
+import de.ml.statistic.Statistic;
 
 public class RestRoute extends RouteBuilder {
     private static final String DIRECT_PREV = "direct:prev";
@@ -98,7 +98,7 @@ public class RestRoute extends RouteBuilder {
         filterNameAutoTimeSort = restEndpoints.filterNameAutoTimeSort();
         avgDistance = restEndpoints.statisticAvgDistance();
         distChart = restEndpoints.statisticDistChart();
-        this.statistic = statistic;
+		this.statistic = statistic;
     }
 
     @Override
