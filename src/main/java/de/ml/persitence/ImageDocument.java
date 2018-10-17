@@ -1,28 +1,29 @@
 package de.ml.persitence;
 
-import com.google.common.util.concurrent.AtomicLongMap;
-import lombok.Data;
+import java.time.ZonedDateTime;
 
-import java.time.LocalDateTime;
+import com.google.common.util.concurrent.AtomicLongMap;
+
+import lombok.Data;
+import lombok.NonNull;
 
 @Data
 public class ImageDocument {
+
+    @NonNull
+    private ImageId _id;
+
     /**
-     * An identifying part of the file path.
+     * Last time the image was fetched through an end point
      */
-    private String fileName;
-    /**
-     * Files size.
-     */
-    private Long size;
+    private ZonedDateTime lastFetched;
 
     /**
      *
      */
-    private LocalDateTime lastFetched;
+    private AtomicLongMap<Endpoints> countByEndpoint;
 
-    /**
-     *
-     */
-    private AtomicLongMap<String> countByEndpoint;
+    public ImageDocument() {
+        countByEndpoint = AtomicLongMap.create();
+    }
 }
