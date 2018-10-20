@@ -20,11 +20,7 @@ public class MongoPersistence implements PersistenceRepository {
     private MongoClient mongoClient = null;
 
     public MongoPersistence() {
-        try {
             mongoClient = new MongoClient();
-        } catch( UnknownHostException e ) {
-            log.warn( "Problem creating mongo client for persistence: ", e );
-        }
     }
 
     @Override
