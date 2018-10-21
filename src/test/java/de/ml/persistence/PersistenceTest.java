@@ -2,7 +2,6 @@ package de.ml.persistence;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -18,10 +17,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.component.mongodb.MongoDbEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 
@@ -56,7 +56,7 @@ public class PersistenceTest extends CamelTestSupport {
     protected RoutesBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             @Override
-            public void configure() throws Exception {
+            public void configure() {
                 from(DIRECT_IN).process(exchange -> {
                     exchange.getIn().setBody(om.writeValueAsString(exchange.getIn().getBody()));
                 }).to(getMongoEndpoint()).to(resultEndpoint);
