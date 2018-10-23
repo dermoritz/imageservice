@@ -1,8 +1,24 @@
 package de.ml.persistence;
 
 
+import static io.github.benas.randombeans.api.EnhancedRandom.*;
+
+import java.io.IOException;
+
+import org.apache.camel.EndpointInject;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.RoutesBuilder;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.test.junit4.CamelTestSupport;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -11,23 +27,14 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import de.ml.endpoints.PersistenceEndpointsProvider;
 import de.ml.persitence.ImageDocument;
-import org.apache.camel.*;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.component.mongodb.MongoDbEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.IOException;
-
-import static io.github.benas.randombeans.api.EnhancedRandom.random;
 
 public class PersistenceTest extends CamelTestSupport {
 
     public static final String DIRECT_IN = "direct:in";
+
+
 
     @EndpointInject(uri = "mock:result")
     protected MockEndpoint resultEndpoint;
@@ -37,6 +44,7 @@ public class PersistenceTest extends CamelTestSupport {
 
     private ObjectMapper om = new ObjectMapper();
     private static MongodExecutable mongodExecutable;
+    private MongoClient mongoClient;
 
     @Test
     public void test() throws InterruptedException {
@@ -54,35 +62,19 @@ public class PersistenceTest extends CamelTestSupport {
 
     @Override
     protected RoutesBuilder createRouteBuilder() throws Exception {
+        PersistenceEndpointsProvider provider = new PersistenceEndpointsProvider( context() );
         return new RouteBuilder() {
             @Override
-            public void configure() {
+            public void configure() throws Exception {
                 from(DIRECT_IN).process(exchange -> {
                     exchange.getIn().setBody(om.writeValueAsString(exchange.getIn().getBody()));
-                }).to(getMongoEndpoint()).to(resultEndpoint);
+                }).to(provider.saveImageAccess()).to(resultEndpoint);
             }
         };
     }
 
 
-    private Endpoint getMongoEndpoint() {
-        addMongoDbToRegistry();
-        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?database=imageservice&collection=images&operation=save", MongoDbEndpoint.class);
 
-        return mongoDbEndpoint;
-    }
-
-    private void addMongoDbToRegistry() {
-        MongoClient mongoClient = new MongoClient();
-        final CamelContext camelContext = context();
-        final org.apache.camel.impl.SimpleRegistry registry = new org.apache.camel.impl.SimpleRegistry();
-        final org.apache.camel.impl.CompositeRegistry compositeRegistry = new org.apache.camel.impl.CompositeRegistry();
-        compositeRegistry.addRegistry(camelContext.getRegistry());
-        compositeRegistry.addRegistry(registry);
-        ((org.apache.camel.impl.DefaultCamelContext) camelContext).setRegistry(compositeRegistry);
-        registry.put("myDb", mongoClient);
-
-    }
 
     @BeforeClass
     public static void initDb() throws IOException {
