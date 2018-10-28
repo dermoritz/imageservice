@@ -5,6 +5,9 @@ import javax.inject.Inject;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.component.mongodb.MongoDbEndpoint;
+import org.apache.camel.impl.CompositeRegistry;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.impl.SimpleRegistry;
 
 import com.mongodb.MongoClient;
 
@@ -44,11 +47,11 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
     private void addMongoDbToRegistry() {
         mongoClient = new MongoClient();
         final CamelContext camelContext = context;
-        final org.apache.camel.impl.SimpleRegistry registry = new org.apache.camel.impl.SimpleRegistry();
-        final org.apache.camel.impl.CompositeRegistry compositeRegistry = new org.apache.camel.impl.CompositeRegistry();
+        final SimpleRegistry registry = new SimpleRegistry();
+        final CompositeRegistry compositeRegistry = new CompositeRegistry();
         compositeRegistry.addRegistry(camelContext.getRegistry());
         compositeRegistry.addRegistry(registry);
-        ((org.apache.camel.impl.DefaultCamelContext) camelContext).setRegistry(compositeRegistry);
+        ((DefaultCamelContext) camelContext).setRegistry(compositeRegistry);
         registry.put("myDb", mongoClient );
 
     }

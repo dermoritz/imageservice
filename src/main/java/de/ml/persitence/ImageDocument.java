@@ -1,8 +1,7 @@
 package de.ml.persitence;
 
 import java.time.ZonedDateTime;
-
-import com.google.common.util.concurrent.AtomicLongMap;
+import java.util.EnumMap;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -21,9 +20,6 @@ public class ImageDocument {
     /**
      *
      */
-    private AtomicLongMap<Endpoints> countByEndpoint;
+    private EnumMap<Endpoints, Integer> countByEndpoint;
 
-    public ImageDocument() {
-        countByEndpoint = AtomicLongMap.create();
-    }
 }

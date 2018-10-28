@@ -11,6 +11,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -66,9 +67,9 @@ public class PersistenceTest extends CamelTestSupport {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from(DIRECT_IN).process(exchange -> {
-                    exchange.getIn().setBody(om.writeValueAsString(exchange.getIn().getBody()));
-                }).to(provider.saveImageAccess()).to(resultEndpoint);
+                from(DIRECT_IN)
+                        .marshal().json( JsonLibrary.Jackson).convertBodyTo( String.class )
+                        .to(provider.saveImageAccess()).to(resultEndpoint);
             }
         };
     }
