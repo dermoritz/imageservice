@@ -35,7 +35,7 @@ public class PersistenceTest extends CamelTestSupport {
 
     public static final String DIRECT_IN = "direct:in";
 
-
+    private static final Boolean useEmbedded = false;
 
     @EndpointInject(uri = "mock:result")
     protected MockEndpoint resultEndpoint;
@@ -63,36 +63,38 @@ public class PersistenceTest extends CamelTestSupport {
 
     @Override
     protected RoutesBuilder createRouteBuilder() throws Exception {
-        PersistenceEndpointsProvider provider = new PersistenceEndpointsProvider( context() );
+        PersistenceEndpointsProvider provider = new PersistenceEndpointsProvider(context());
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
                 from(DIRECT_IN)
-                        .marshal().json( JsonLibrary.Jackson).convertBodyTo( String.class )
+                        .marshal().json(JsonLibrary.Jackson).convertBodyTo(String.class)
                         .to(provider.saveImageAccess()).to(resultEndpoint);
             }
         };
     }
 
 
-
-
     @BeforeClass
     public static void initDb() throws IOException {
-        MongodStarter starter = MongodStarter.getDefaultInstance();
-        String bindIp = "localhost";
-        int port = 27017;
-        IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(bindIp, port, Network.localhostIsIPv6()))
-                .build();
-        mongodExecutable = starter.prepare(mongodConfig);
-        MongodProcess mongod = mongodExecutable.start();
+        if (useEmbedded) {
+            MongodStarter starter = MongodStarter.getDefaultInstance();
+            String bindIp = "localhost";
+            int port = 27017;
+            IMongodConfig mongodConfig = new MongodConfigBuilder()
+                    .version(Version.Main.PRODUCTION)
+                    .net(new Net(bindIp, port, Network.localhostIsIPv6()))
+                    .build();
+            mongodExecutable = starter.prepare(mongodConfig);
+            MongodProcess mongod = mongodExecutable.start();
+        }
     }
 
     @AfterClass
     public static void tearDownDb() {
-        mongodExecutable.stop();
+        if (useEmbedded) {
+            mongodExecutable.stop();
+        }
     }
 
 }

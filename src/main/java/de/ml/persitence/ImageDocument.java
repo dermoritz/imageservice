@@ -18,6 +18,11 @@ public class ImageDocument {
     private ZonedDateTime lastFetched;
 
     /**
+     * Current file path
+     */
+    private String currentPath;
+
+    /**
      *
      */
     private EnumMap<Endpoints, Integer> countByEndpoint;
