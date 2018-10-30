@@ -35,7 +35,7 @@ public class PersistenceTest extends CamelTestSupport {
 
     public static final String DIRECT_IN = "direct:in";
 
-    private static final Boolean useEmbedded = false;
+    private static final Boolean useEmbedded = true;
 
     @EndpointInject(uri = "mock:result")
     protected MockEndpoint resultEndpoint;
