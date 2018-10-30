@@ -24,23 +24,22 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
 
 
     @Override
-    public Endpoint saveImageAccess() {
+    public Endpoint updateImage() {
         return getMongoEndpoint();
+    }
+
+    @Override
+    public Endpoint readById() {
+        return null;
     }
 
     private Endpoint getMongoEndpoint() {
         addMongoDbToRegistry();
-        //MongoDbEndpoint mongoDbEndpoint = (MongoDbEndpoint) context.getComponent( "mongodb" ).createEndpoint( "mongodb:myDb" );
         MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb", MongoDbEndpoint.class);
-        //mongoDbEndpoint.setEndpointUriIfNotSpecified( "mongodb:myDb" );
         mongoDbEndpoint.setMongoConnection( mongoClient );
         mongoDbEndpoint.setDatabase( "imageservice" );
         mongoDbEndpoint.setCollection( "images" );
-        mongoDbEndpoint.setOperation( "save" );
-        //mongoDbEndpoint.setCamelContext( context );
-        //context.addEndpoint( "mongodb:myDb", mongoDbEndpoint );
-
-
+        mongoDbEndpoint.setOperation( "update" );
         return mongoDbEndpoint;
     }
 

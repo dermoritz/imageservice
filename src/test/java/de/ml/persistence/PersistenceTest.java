@@ -1,9 +1,11 @@
 package de.ml.persistence;
 
 
-import static io.github.benas.randombeans.api.EnhancedRandom.*;
-
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -11,13 +13,12 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.component.mongodb.MongoDbConstants;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -29,6 +30,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import de.ml.endpoints.PersistenceEndpointsProvider;
+import de.ml.persitence.Endpoints;
 import de.ml.persitence.ImageDocument;
 
 public class PersistenceTest extends CamelTestSupport {
@@ -43,15 +45,19 @@ public class PersistenceTest extends CamelTestSupport {
     @Produce(uri = DIRECT_IN)
     protected ProducerTemplate template;
 
-    private ObjectMapper om = new ObjectMapper();
     private static MongodExecutable mongodExecutable;
     private MongoClient mongoClient;
 
     @Test
-    public void test() throws InterruptedException {
-        ImageDocument random = random(ImageDocument.class);
-        resultEndpoint.setExpectedMessageCount(1);
-        template.sendBody(random);
+    public void test() throws InterruptedException, URISyntaxException {
+        URL imageFileUrl = PersistenceTest.class.getResource( "/numbers/0.jpg" );
+        Path path = Paths.get( imageFileUrl.toURI() );
+        ImageDocument imageDocument = new ImageDocument( path );
+
+        resultEndpoint.setExpectedMessageCount(3);
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asDBObject(),imageDocument.updateImage()}, MongoDbConstants.UPSERT, true );
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asDBObject(),imageDocument.countAccess( Endpoints.BYINDEX )}, MongoDbConstants.UPSERT, false );
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asDBObject(),imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
         resultEndpoint.assertIsSatisfied();
     }
 
@@ -68,8 +74,8 @@ public class PersistenceTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 from(DIRECT_IN)
-                        .marshal().json(JsonLibrary.Jackson).convertBodyTo(String.class)
-                        .to(provider.saveImageAccess()).to(resultEndpoint);
+                        //.marshal().json(JsonLibrary.Jackson).convertBodyTo(String.class)
+                        .to(provider.updateImage()).to(resultEndpoint);
             }
         };
     }
