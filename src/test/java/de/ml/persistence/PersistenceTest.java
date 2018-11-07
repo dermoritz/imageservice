@@ -18,11 +18,15 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.component.mongodb.MongoDbConstants;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 
-import com.mongodb.MongoClient;
+import com.google.common.collect.Sets;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.result.UpdateResult;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -34,6 +38,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import de.ml.endpoints.PersistenceEndpointsProvider;
+import de.ml.persitence.Endpoints;
 import de.ml.persitence.ImageDocument;
 
 public class PersistenceTest extends CamelTestSupport {
@@ -57,7 +62,6 @@ public class PersistenceTest extends CamelTestSupport {
     protected ProducerTemplate findByIdTemplate;
 
     private static MongodExecutable mongodExecutable;
-    private MongoClient mongoClient;
     private PersistenceEndpointsProvider provider;
 
     @Test
@@ -71,21 +75,21 @@ public class PersistenceTest extends CamelTestSupport {
         updateResultEndpoint.assertIsSatisfied();
         UpdateResult updateResult = updateResultEndpoint.getExchanges().get( 0 ).getIn().getBody( UpdateResult.class );
         assertNotNull( updateResult );
-        //        updateResultEndpoint.setExpectedMessageCount(4);
-//        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.BYINDEX )}, MongoDbConstants.UPSERT, false );
-//        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
-//        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.addTags( Sets.newHashSet( "simp","innie" ) )}, MongoDbConstants.UPSERT, false );
-//        updateResultEndpoint.assertIsSatisfied();
-//        findByIdResultEndpoint.setExpectedMessageCount( 1 );
-//        findByIdTemplate.sendBody( imageDocument.get_id().asDBObject() );
-//        findByIdResultEndpoint.assertIsSatisfied();
-//        BasicDBObject object = findByIdResultEndpoint.getExchanges().get( 0 ).getIn().getBody( BasicDBObject.class );
-//        Assert.assertNotNull(object);
-//        MongoConverter mongoConverter = provider.getMongoTemplate().getConverter();
-//        GenericConversionService conversionService = (GenericConversionService) mongoConverter.getConversionService();
-//        conversionService.addConverter( new ZonedDateTimeConverter()  );
-//        ImageDocument read = mongoConverter.read( ImageDocument.class, object );
-//        Assert.assertNotNull(read);
+        updateResultEndpoint.setExpectedMessageCount(4);
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.BYINDEX )}, MongoDbConstants.UPSERT, false );
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
+        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.addTags( Sets.newHashSet( "simp","innie" ) )}, MongoDbConstants.UPSERT, false );
+        updateResultEndpoint.assertIsSatisfied();
+        findByIdResultEndpoint.setExpectedMessageCount( 1 );
+        findByIdTemplate.sendBody( imageDocument.get_id().asDBObject() );
+        findByIdResultEndpoint.assertIsSatisfied();
+        BasicDBObject object = findByIdResultEndpoint.getExchanges().get( 0 ).getIn().getBody( BasicDBObject.class );
+        Assert.assertNotNull(object);
+        MongoConverter mongoConverter = provider.getMongoTemplate().getConverter();
+        GenericConversionService conversionService = (GenericConversionService) mongoConverter.getConversionService();
+        conversionService.addConverter( new ZonedDateTimeConverter()  );
+        ImageDocument read = mongoConverter.read( ImageDocument.class, object );
+        Assert.assertNotNull(read);
     }
 
     public class ZonedDateTimeConverter implements Converter<String, ZonedDateTime>{
@@ -110,8 +114,8 @@ public class PersistenceTest extends CamelTestSupport {
             public void configure() throws Exception {
                 from( DIRECT_UPDATE )
                         .to( provider.updateImage()).to( updateResultEndpoint );
-               // from( DIRECT_FIND_BY_ID )
-                 //       .to( provider.readById()).to( findByIdResultEndpoint );
+                from( DIRECT_FIND_BY_ID )
+                        .to( provider.readById()).to( findByIdResultEndpoint );
 
             }
         };

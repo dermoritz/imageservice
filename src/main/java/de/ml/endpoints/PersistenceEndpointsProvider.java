@@ -35,20 +35,18 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
 
     @Override
     public Endpoint readById() {
-        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb", MongoDbEndpoint.class);
+        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?operation=findById", MongoDbEndpoint.class);
         mongoDbEndpoint.setMongoConnection( mongoClient );
         mongoDbEndpoint.setDatabase( DATABASE );
         mongoDbEndpoint.setCollection( COLLECTION );
-        mongoDbEndpoint.setOperation( "findById" );
         return mongoDbEndpoint;
     }
 
     private Endpoint getMongoUpdateEndpoint() {
-        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb", MongoDbEndpoint.class);
+        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?operation=update", MongoDbEndpoint.class);
         mongoDbEndpoint.setMongoConnection( mongoClient );
         mongoDbEndpoint.setDatabase( DATABASE );
         mongoDbEndpoint.setCollection( COLLECTION );
-        mongoDbEndpoint.setOperation( "update" );
         return mongoDbEndpoint;
     }
 
