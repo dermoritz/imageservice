@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.Objects;
+import java.util.Set;
 
 import com.mongodb.BasicDBObject;
 
@@ -38,6 +39,11 @@ public class ImageDocument {
     private String currentPath;
 
     /**
+     * Image tags
+     */
+    private Set<String> tags;
+
+    /**
      *
      */
     private EnumMap<Endpoints, Integer> countByEndpoint = new EnumMap<>( Endpoints.class );
@@ -65,6 +71,14 @@ public class ImageDocument {
         return new BasicDBObject().append( "$inc", new BasicDBObject().append( "countByEndpoint." + endpoint.name(), 1 ) )
                 .append( "$set",
                         new BasicDBObject().append( "lastFetched", lastFetched.format( DateTimeFormatter.ISO_OFFSET_DATE_TIME ) ) );
+    }
+
+    public BasicDBObject addTags(Set<String> tags){
+        return new BasicDBObject( "$addToSet", new BasicDBObject( "tags", new BasicDBObject( "$each", tags ) ) );
+    }
+
+    public BasicDBObject removeTags(Set<String> tags){
+        return new BasicDBObject( "$pull", new BasicDBObject( "tags",new BasicDBObject( "$in", tags ) ) );
     }
 
     @Override

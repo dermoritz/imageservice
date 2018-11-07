@@ -42,13 +42,13 @@ public class ImageId {
 
     /**
      * An {@link BasicDBObject} {"_id":{"filename":"name","size":"size"}}
-     * @return
+     * @return an {@link BasicDBObject} that wraps the id in an oblect with one field "_id".
      */
-    public BasicDBObject asDBObject(){
-        BasicDBObject result = new BasicDBObject();
-        BasicDBObject id = new BasicDBObject();
-        id.append( "fileName", fileName ).append( "size", size );
+    public BasicDBObject asWrappedDBObject(){
+        return new BasicDBObject(  ).append( "_id", asDBObject() );
+    }
 
-        return result.append( "_id", id );
+    public BasicDBObject asDBObject(){
+        return new BasicDBObject().append( "fileName", fileName ).append( "size", size );
     }
 }
