@@ -1,13 +1,15 @@
 package de.ml.persistence;
 
 
+import static org.hamcrest.Matchers.*;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -18,12 +20,8 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.component.mongodb.MongoDbConstants;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 import com.google.common.collect.Sets;
 import com.mongodb.BasicDBObject;
@@ -47,7 +45,13 @@ public class PersistenceTest extends CamelTestSupport {
 
     public static final String DIRECT_FIND_BY_ID = "direct:find_by_id";
 
+    /**
+     * If true the createImageDocument will use an embedded mongodb and will run independently.
+     * Set to false to createImageDocument against a running mongo db
+     */
     private static final Boolean useEmbedded = true;
+
+    private static final String DIRECT_REMOVE = "direct:remove";
 
     @EndpointInject(uri = "mock:updateresult")
     protected MockEndpoint updateResultEndpoint;
@@ -56,50 +60,103 @@ public class PersistenceTest extends CamelTestSupport {
     protected MockEndpoint findByIdResultEndpoint;
 
     @Produce(uri = DIRECT_UPDATE )
-    protected ProducerTemplate template;
+    protected ProducerTemplate updateTemplate;
 
     @Produce(uri = DIRECT_FIND_BY_ID)
     protected ProducerTemplate findByIdTemplate;
 
+    @Produce(uri = DIRECT_REMOVE)
+    protected ProducerTemplate removeTemplate;
+
     private static MongodExecutable mongodExecutable;
+
     private PersistenceEndpointsProvider provider;
 
+    @EndpointInject(uri = "mock:remove")
+    private MockEndpoint removedResult;
+
     @Test
-    public void test() throws InterruptedException, URISyntaxException {
+    public void createImageDocument() throws InterruptedException, URISyntaxException {
         URL imageFileUrl = PersistenceTest.class.getResource( "/numbers/0.jpg" );
         Path path = Paths.get( imageFileUrl.toURI() );
         ImageDocument imageDocument = new ImageDocument( path );
 
-        updateResultEndpoint.setExpectedMessageCount(1);
-        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.updateImage()}, MongoDbConstants.UPSERT, true );
+        //persist an document
+        persistAnDocument( imageDocument );
+
+        //retrieve and check image document
+        ImageDocument readImageDocument = getImageDocument( imageDocument );
+
+        assertNotNull(readImageDocument.getLastUpdated());
+        assertThat( readImageDocument.getLastUpdated(), lessThan( ZonedDateTime.now() ) );
+        assertNull( readImageDocument.getLastFetched() );
+        assertThat( readImageDocument.getCurrentPath(), is( path.toString() ) );
+
+        //remove image
+        removeImage( imageDocument );
+
+    }
+
+
+    @Test
+    public void updateImageDocument() throws InterruptedException, URISyntaxException {
+        URL imageFileUrl = PersistenceTest.class.getResource( "/numbers/0.jpg" );
+        Path path = Paths.get( imageFileUrl.toURI() );
+        ImageDocument imageDocument = new ImageDocument( path );
+        //persist an document
+        persistAnDocument( imageDocument );
+
+
+        //update image document
+        //expect 1 from persisting an image and the others for the updates
+        updateResultEndpoint.setExpectedMessageCount(7);
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.BYINDEX )}, MongoDbConstants.UPSERT, false );
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.BYFILTER )}, MongoDbConstants.UPSERT, false );
+        HashSet<String> tags = Sets.newHashSet( "simp", "innie", "green" );
+        HashSet<String> removedTags = Sets.newHashSet( "simp" );
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.addTags( tags )}, MongoDbConstants.UPSERT, false );
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.removeTags( removedTags )}, MongoDbConstants.UPSERT, false );
         updateResultEndpoint.assertIsSatisfied();
+
+        ImageDocument readImageDocument = getImageDocument( imageDocument );
+
+        //remove image
+        removeImage( imageDocument );
+
+    }
+
+
+    private void persistAnDocument( ImageDocument imageDocument ) throws InterruptedException {
+        updateResultEndpoint.setExpectedMessageCount(1);
+        updateTemplate.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.updateImage()}, MongoDbConstants.UPSERT, true );
+        updateResultEndpoint.assertIsSatisfied();
+        //check if persisted successfully
         UpdateResult updateResult = updateResultEndpoint.getExchanges().get( 0 ).getIn().getBody( UpdateResult.class );
         assertNotNull( updateResult );
-        updateResultEndpoint.setExpectedMessageCount(4);
-        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.BYINDEX )}, MongoDbConstants.UPSERT, false );
-        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.countAccess( Endpoints.RANDOM )}, MongoDbConstants.UPSERT, false );
-        template.sendBodyAndHeader( new Object[]{imageDocument.get_id().asWrappedDBObject(), imageDocument.addTags( Sets.newHashSet( "simp","innie" ) )}, MongoDbConstants.UPSERT, false );
-        updateResultEndpoint.assertIsSatisfied();
+    }
+
+    private ImageDocument getImageDocument( ImageDocument imageDocument ) throws InterruptedException {
         findByIdResultEndpoint.setExpectedMessageCount( 1 );
         findByIdTemplate.sendBody( imageDocument.get_id().asDBObject() );
         findByIdResultEndpoint.assertIsSatisfied();
+        //convert to ImageDocument
         BasicDBObject object = findByIdResultEndpoint.getExchanges().get( 0 ).getIn().getBody( BasicDBObject.class );
-        Assert.assertNotNull(object);
-        MongoConverter mongoConverter = provider.getMongoTemplate().getConverter();
-        GenericConversionService conversionService = (GenericConversionService) mongoConverter.getConversionService();
-        conversionService.addConverter( new ZonedDateTimeConverter()  );
-        ImageDocument read = mongoConverter.read( ImageDocument.class, object );
-        Assert.assertNotNull(read);
+        assertNotNull(object);
+
+        ImageDocument readImageDocument = provider.getMongoConverter().read( ImageDocument.class, object );
+        assertNotNull(readImageDocument);
+        return readImageDocument;
     }
 
-    public class ZonedDateTimeConverter implements Converter<String, ZonedDateTime>{
-
-        @Override
-        public ZonedDateTime convert( String source ) {
-            return ZonedDateTime.parse( source, DateTimeFormatter.ISO_OFFSET_DATE_TIME );
-        }
+    private void removeImage( ImageDocument imageDocument ) throws InterruptedException {
+        removedResult.setExpectedMessageCount( 1 );
+        removeTemplate.sendBody( imageDocument.get_id().asWrappedDBObject() );
+        removedResult.assertIsSatisfied();
+        Integer affectedCount = removedResult.getExchanges().get( 0 ).getIn().getHeader( MongoDbConstants.RECORDS_AFFECTED, Integer.class );
+        assertThat( affectedCount, is( 1 ) );
     }
-
 
     @Override
     public boolean isUseRouteBuilder() {
@@ -107,21 +164,26 @@ public class PersistenceTest extends CamelTestSupport {
     }
 
     @Override
-    protected RoutesBuilder createRouteBuilder() throws Exception {
+    protected RoutesBuilder createRouteBuilder() {
         provider = new PersistenceEndpointsProvider(context());
         return new RouteBuilder() {
             @Override
-            public void configure() throws Exception {
+            public void configure() {
                 from( DIRECT_UPDATE )
                         .to( provider.updateImage()).to( updateResultEndpoint );
                 from( DIRECT_FIND_BY_ID )
                         .to( provider.readById()).to( findByIdResultEndpoint );
+                from( DIRECT_REMOVE)
+                        .to( provider.removeById()).to( removedResult );
 
             }
         };
     }
 
-
+    /**
+     * Initializes embedded mongo db
+     * @throws IOException
+     */
     @BeforeClass
     public static void initDb() throws IOException {
         if (useEmbedded) {

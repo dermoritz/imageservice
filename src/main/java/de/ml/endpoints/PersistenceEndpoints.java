@@ -14,4 +14,10 @@ public interface PersistenceEndpoints {
      * @return
      */
     Endpoint readById();
+
+    /**
+     * Endpoint to remove an image document from db.
+     * @return
+     */
+    Endpoint removeById();
 }

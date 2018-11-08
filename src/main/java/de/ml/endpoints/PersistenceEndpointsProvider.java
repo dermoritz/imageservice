@@ -1,5 +1,6 @@
 package de.ml.endpoints;
 
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.apache.camel.CamelContext;
@@ -8,9 +9,13 @@ import org.apache.camel.component.mongodb.MongoDbEndpoint;
 import org.apache.camel.impl.CompositeRegistry;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.SimpleRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 import com.mongodb.MongoClient;
+
+import de.ml.persitence.ZonedDateTimeConverter;
 
 public class PersistenceEndpointsProvider implements PersistenceEndpoints {
 
@@ -18,32 +23,33 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
     public static final String DATABASE = "imageservice";
     private final CamelContext context;
     private MongoClient mongoClient;
-    private MongoTemplate mongoTemplate;
+    private MongoConverter mongoConverter;
 
     @Inject
     public PersistenceEndpointsProvider( CamelContext context ) {
         this.context = context;
         addMongoDbToRegistry();
+        addConverters();
     }
-
-
 
     @Override
     public Endpoint updateImage() {
-        return getMongoUpdateEndpoint();
+        return getEndpoint( "update" );
     }
 
     @Override
     public Endpoint readById() {
-        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?operation=findById", MongoDbEndpoint.class);
-        mongoDbEndpoint.setMongoConnection( mongoClient );
-        mongoDbEndpoint.setDatabase( DATABASE );
-        mongoDbEndpoint.setCollection( COLLECTION );
-        return mongoDbEndpoint;
+        return getEndpoint( "findById" );
     }
 
-    private Endpoint getMongoUpdateEndpoint() {
-        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?operation=update", MongoDbEndpoint.class);
+    @Override
+    public Endpoint removeById() {
+        return getEndpoint( "remove" );
+    }
+
+    private Endpoint getEndpoint( String operation ) {
+        //since MongoDbEndpoint are singleton it is important to have different url per endpoint to get different instances
+        MongoDbEndpoint mongoDbEndpoint = context.getEndpoint("mongodb:myDb?operation="+ operation, MongoDbEndpoint.class );
         mongoDbEndpoint.setMongoConnection( mongoClient );
         mongoDbEndpoint.setDatabase( DATABASE );
         mongoDbEndpoint.setCollection( COLLECTION );
@@ -52,7 +58,7 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
 
     private void addMongoDbToRegistry() {
         mongoClient = new MongoClient();
-        mongoTemplate = new MongoTemplate( mongoClient, DATABASE );
+
         final CamelContext camelContext = context;
         final SimpleRegistry registry = new SimpleRegistry();
         final CompositeRegistry compositeRegistry = new CompositeRegistry();
@@ -62,8 +68,14 @@ public class PersistenceEndpointsProvider implements PersistenceEndpoints {
         registry.put("myDb", mongoClient );
     }
 
-    public MongoTemplate getMongoTemplate(){
-        return mongoTemplate;
+    private void addConverters() {
+        mongoConverter = new MongoTemplate( mongoClient, DATABASE ).getConverter();
+        ((GenericConversionService) mongoConverter.getConversionService()).addConverter( new ZonedDateTimeConverter()  );
+    }
+
+    @Produces
+    public MongoConverter getMongoConverter(){
+        return mongoConverter;
     }
 
 }
