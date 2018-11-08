@@ -41,9 +41,9 @@ import de.ml.persitence.ImageDocument;
 
 public class PersistenceTest extends CamelTestSupport {
 
-    public static final String DIRECT_UPDATE = "direct:update";
+    private static final String DIRECT_UPDATE = "direct:update";
 
-    public static final String DIRECT_FIND_BY_ID = "direct:find_by_id";
+    private static final String DIRECT_FIND_BY_ID = "direct:find_by_id";
 
     /**
      * If true the createImageDocument will use an embedded mongodb and will run independently.
@@ -121,6 +121,13 @@ public class PersistenceTest extends CamelTestSupport {
         updateResultEndpoint.assertIsSatisfied();
 
         ImageDocument readImageDocument = getImageDocument( imageDocument );
+        assertThat( readImageDocument.getCountByEndpoint().get( Endpoints.BYINDEX ), is( 1 ) );
+        assertThat( readImageDocument.getCountByEndpoint().get( Endpoints.RANDOM ), is( 2 ) );
+        assertThat( readImageDocument.getCountByEndpoint().get( Endpoints.BYFILTER ), is( 1 ) );
+
+        assertThat( readImageDocument.getTags(), is( Sets.difference( tags, removedTags ) ) );
+
+        assertNotNull( readImageDocument.getLastFetched() );
 
         //remove image
         removeImage( imageDocument );
@@ -182,7 +189,6 @@ public class PersistenceTest extends CamelTestSupport {
 
     /**
      * Initializes embedded mongo db
-     * @throws IOException
      */
     @BeforeClass
     public static void initDb() throws IOException {
