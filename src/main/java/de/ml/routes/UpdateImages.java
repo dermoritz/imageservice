@@ -9,6 +9,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
 import de.ml.endpoints.TriggerEndpointProvider.TriggerEndpoint;
+import de.ml.image.ImageFromFolder;
 import de.ml.image.ImageFromFolder.ImageProviderImpl;
 
 public class UpdateImages extends RouteBuilder {
@@ -28,7 +29,11 @@ public class UpdateImages extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from(updateTrigger).log(LoggingLevel.INFO, "Periodic updateAll triggered.").to(UPDATE_PLUG);
-        from(UPDATE_PLUG).process(unzip).process(update);
+        from(UPDATE_PLUG)
+                .process(unzip)
+                .process(update)
+                .wireTap( PeristenceRoutes.UPDATE_ALL )
+                .setBody( e -> e.getIn().getHeader(ImageFromFolder.UPDATE_RESULT_HEADER ) );
 
     }
 

@@ -11,7 +11,6 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.HttpStatus;
 
 import de.ml.endpoints.RestEndpoints;
-import de.ml.image.ImageFromFolder.ImageProviderImpl;
 import de.ml.processors.SendFile.SendFileProc;
 import de.ml.processors.SetAutoRefresh.SetAutoRefreshProc;
 import de.ml.processors.SetSortHeader.SetSortProc;
@@ -35,7 +34,6 @@ public class RestRoute extends RouteBuilder {
     private final Endpoint distChart;
     private Processor sendFile;
     private Processor setAutoHeader;
-    private Processor imageProvider;
     private Endpoint next;
     private Endpoint nextAuto;
     private Endpoint nextAutoTime;
@@ -69,12 +67,10 @@ public class RestRoute extends RouteBuilder {
     private Endpoint byIndexFilteredInfo;
 
     @Inject
-    private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader,
-                      @ImageProviderImpl Processor imageProvider, RestEndpoints restEndpoints,
+    private RestRoute(@SendFileProc Processor sendFile, @SetAutoRefreshProc Processor setAutoHeader, RestEndpoints restEndpoints,
                       @SetSortProc Processor setSortHeader, Statistic statistic) {
         this.sendFile = sendFile;
         this.setAutoHeader = setAutoHeader;
-        this.imageProvider = imageProvider;
         this.setSortHeader = setSortHeader;
         this.next = restEndpoints.next();
         this.nextAuto = restEndpoints.nextAuto();
@@ -141,7 +137,9 @@ public class RestRoute extends RouteBuilder {
         from(filterNameAutoTime).to(DIRECT_NEXT_AUTO);
         from(filterNameAutoTimeSort).to(DIRECT_SORT_AUTO);
         //
-        from(DIRECT_NEXT).process(sendFile).setHeader("Access-Control-Allow-Origin", constant("*"));
+        from(DIRECT_NEXT).process(sendFile)
+                .wireTap( PeristenceRoutes.COUNT_FETCH )
+                .setHeader("Access-Control-Allow-Origin", constant("*"));
     }
 
     public enum Mode {

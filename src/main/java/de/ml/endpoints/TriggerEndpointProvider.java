@@ -29,7 +29,8 @@ public class TriggerEndpointProvider {
     @TriggerEndpoint
     private Endpoint getTriggerEndpoint(){
         TimerEndpoint timer = context.getEndpoint("timer:updateAll", TimerEndpoint.class);
-        timer.setDelay(TWENTY_FOUR_HOURS);
+        //first trigger right after start
+        timer.setDelay(0);
         timer.setPeriod(TWENTY_FOUR_HOURS);
         return timer;
 
@@ -38,7 +39,7 @@ public class TriggerEndpointProvider {
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
-    public static @interface TriggerEndpoint {
+    public @interface TriggerEndpoint {
 
     }
 }
