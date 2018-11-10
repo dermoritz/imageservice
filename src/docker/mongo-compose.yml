@@ -1,0 +1,18 @@
+version: '3'
+volumes:
+  mongo-data: {}
+  mongo-configdb: {}
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: "mongo"
+    environment:
+    - MONGO_DATA_DIR=/data/db
+    - MONGO_LOG_DIR=/data/configdb
+    ports:
+    - 27017:27017
+    volumes:
+    - "mongo-data:/data/db"
+    - "mongo-configdb:/data/configdb"
+    restart: always    
