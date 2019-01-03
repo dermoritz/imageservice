@@ -38,6 +38,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import de.ml.endpoints.PersistenceEndpointsProvider;
 import de.ml.persitence.Endpoints;
 import de.ml.persitence.ImageDocument;
+import de.ml.persitence.MongoAliveListener;
 
 public class PersistenceTest extends CamelTestSupport {
 
@@ -172,7 +173,7 @@ public class PersistenceTest extends CamelTestSupport {
 
     @Override
     protected RoutesBuilder createRouteBuilder() {
-        provider = new PersistenceEndpointsProvider(context());
+        provider = new PersistenceEndpointsProvider(context(), new MongoAliveListener(context()) );
         return new RouteBuilder() {
             @Override
             public void configure() {

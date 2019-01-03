@@ -21,10 +21,4 @@ public interface PersistenceEndpoints {
      */
     Endpoint removeById();
 
-    /**
-     * Indicates if persistence layer is running.
-     *
-     * @return
-     */
-    Boolean isPersistenceRunning();
 }

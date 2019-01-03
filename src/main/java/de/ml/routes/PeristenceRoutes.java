@@ -2,9 +2,7 @@ package de.ml.routes;
 
 import javax.inject.Inject;
 
-import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
-import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
@@ -16,6 +14,8 @@ public class PeristenceRoutes extends RouteBuilder {
 
     public static final String UPDATE_ALL = "direct:update-all";
     public static final String COUNT_FETCH = "direct:count-fetch";
+    public static final String MONGO_UPDATE_ALL_ROUTEID = "mongoUpdateAll";
+    public static final String MONGO_COUNT_FETCH_ROUTEID = "mongoCountFetch";
     private Processor updateProcessor;
     private final PersistenceEndpoints persistenceEndpoints;
     private Processor countFetchProcessor;
@@ -29,8 +29,9 @@ public class PeristenceRoutes extends RouteBuilder {
 
     @Override
     public void configure() {
-        if (persistenceEndpoints.isPersistenceRunning()) {
             from(UPDATE_ALL)
+                    .routeId( MONGO_UPDATE_ALL_ROUTEID )
+                    .autoStartup( false )
                     .log("start updating data base")
                     .split().body()
                     .parallelProcessing()
@@ -39,13 +40,12 @@ public class PeristenceRoutes extends RouteBuilder {
                     .end()// end split
                     .log("update db finished");
             from(COUNT_FETCH)
+                    .routeId( MONGO_COUNT_FETCH_ROUTEID )
+                    .autoStartup( false )
                     .process(countFetchProcessor)
                     .to(persistenceEndpoints.updateImage())
                     .log(LoggingLevel.DEBUG, "Counted fetch.");
-        } else {
-            from(UPDATE_ALL).filter(exchange -> false).log("afas");
-            from(COUNT_FETCH).filter(exchange -> false).log("asf");
-        }
+
 
     }
 }

@@ -138,7 +138,7 @@ public class RestRoute extends RouteBuilder {
         from(filterNameAutoTimeSort).to(DIRECT_SORT_AUTO);
         //
         from(DIRECT_NEXT).process(sendFile)
-                .wireTap( PeristenceRoutes.COUNT_FETCH )
+                .wireTap( PeristenceRoutes.COUNT_FETCH+"?failIfNoConsumers=false" )
                 .setHeader("Access-Control-Allow-Origin", constant("*"));
     }
 

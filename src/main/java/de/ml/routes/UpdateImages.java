@@ -32,7 +32,7 @@ public class UpdateImages extends RouteBuilder {
         from(UPDATE_PLUG)
                 .process(unzip)
                 .process(update)
-                .wireTap( PeristenceRoutes.UPDATE_ALL )
+                .wireTap( PeristenceRoutes.UPDATE_ALL+"?failIfNoConsumers=false" )
                 .setBody( e -> e.getIn().getHeader(ImageFromFolder.UPDATE_RESULT_HEADER ) );
 
     }
