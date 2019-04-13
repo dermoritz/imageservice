@@ -1,5 +1,7 @@
 package de.ml.processors;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -29,8 +31,6 @@ import de.ml.processors.SendFile.SendFileProc;
 import de.ml.routes.RestRoute;
 import de.ml.routes.RestRoute.Mode;
 
-import static com.google.common.base.Preconditions.*;
-
 @SendFileProc
 public class SendFile implements Processor {
 
@@ -44,7 +44,7 @@ public class SendFile implements Processor {
     }
 
     @Override
-    public void process(Exchange exchange) throws Exception {
+    public void process(Exchange exchange) {
         Mode historyHeader = exchange.getIn().getHeader(RestRoute.MODE_HEADER, Mode.class);
         Boolean sort = exchange.getIn().getHeader(SetSortHeader.SORT_HEADER, Boolean.class);
         if (historyHeader != null) {
@@ -71,7 +71,7 @@ public class SendFile implements Processor {
         }
     }
 
-    private String getNameParameter(Exchange exchange) {
+    public static String getNameParameter(Exchange exchange) {
         try {
             return URLDecoder.decode(Strings.nullToEmpty(exchange.getIn().getHeader(
                                                                                     RestEndpointsProvider.HEADER_NAME_PARAMETER,

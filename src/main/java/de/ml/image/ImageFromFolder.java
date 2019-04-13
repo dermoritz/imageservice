@@ -51,6 +51,7 @@ import de.ml.statistic.Statistic;
 public class ImageFromFolder implements ImageProvider, Processor {
     private static final PathMatcher IMAGE_FILE_PATTERN = FileSystems.getDefault()
                                                                      .getPathMatcher("glob:*.{jpg,jpeg,png,gif,bmp}");
+    public static final String UPDATE_RESULT_HEADER = "UPDATE_RESULT";
     private final Provider<Random> randomProvider;
     private volatile Statistic statistic;
     private List<File> folders;
@@ -85,7 +86,6 @@ public class ImageFromFolder implements ImageProvider, Processor {
             throw new IllegalStateException("Problem on creating executor: ", e);
         }
         setupCache();
-        fetchAllFiles();
     }
 
     private void setupCache() {
@@ -124,7 +124,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
                 currentTask = exec.submit(new FetchFilesTask(folder));
                 currentTasks.put(folder, currentTask);
             } else {
-                log.info("Reject to update folder " + folder + ", previous update not finished yet.");
+                log.info("Reject to updateAll folder " + folder + ", previous updateAll not finished yet.");
             }
         }
     }
@@ -138,7 +138,8 @@ public class ImageFromFolder implements ImageProvider, Processor {
         String message = "Update yielded " + (files.size() - oldFileCount) + " files. Total file count now: "
                          + files.size();
         log.info(message);
-        exchange.getIn().setBody(message);
+        exchange.getIn().setHeader( UPDATE_RESULT_HEADER,message );
+        exchange.getIn().setBody(files);
     }
 
     private void waitUntilFinished() {
@@ -161,7 +162,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
 
         @Override
         public void run() {
-            log.info("Starting file update on " + folder);
+            log.info("Starting file updateAll on " + folder);
             Stopwatch stopwatch = Stopwatch.createStarted();
             int oldCount = files.size();
             try (Stream<Path> fileStream = Files.find(folder.toPath(),

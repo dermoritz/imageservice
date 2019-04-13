@@ -79,11 +79,11 @@ public class RestEndpointsProvider implements RestEndpoints {
     /*
      * (non-Javadoc)
      *
-     * @see de.ml.endpoints.RestEndpoints#update()
+     * @see de.ml.endpoints.RestEndpoints#updateAll()
      */
     @Override
     public Endpoint update() {
-        return getRestEndpoint("/update");
+        return getRestEndpoint("/updateAll");
     }
 
     /*
