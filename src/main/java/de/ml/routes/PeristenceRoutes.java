@@ -2,6 +2,7 @@ package de.ml.routes;
 
 import javax.inject.Inject;
 
+import de.ml.image.ImageFromFolder;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -32,13 +33,17 @@ public class PeristenceRoutes extends RouteBuilder {
             from(UPDATE_ALL)
                     .routeId( MONGO_UPDATE_ALL_ROUTEID )
                     .autoStartup( false )
-                    .log("start updating data base")
-                    .split().body()
-                    .parallelProcessing()
-                    .process(updateProcessor)
-                    .to(persistenceEndpoints.updateImage())
-                    .end()// end split
-                    .log("update db finished");
+                    .choice()
+                        .when(header(ImageFromFolder.UPDATE_YIELD).isEqualTo(0))
+                            .log("no files changed, skip updating data base")
+                        .otherwise()
+                            .log("start updating data base")
+                            .split().body()
+                            .parallelProcessing()
+                            .process(updateProcessor)
+                            .to(persistenceEndpoints.updateImage())
+                            .end()// end split
+                            .log("update db finished");
             from(COUNT_FETCH)
                     .routeId( MONGO_COUNT_FETCH_ROUTEID )
                     .autoStartup( false )
