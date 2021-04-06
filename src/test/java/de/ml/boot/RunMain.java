@@ -13,7 +13,7 @@ public class RunMain {
 
     @Test
     public void runWithFolder() {
-        org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1"});
+        org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1\\imageService\\examples2","8080"});
     }
 
 }
