@@ -7,5 +7,6 @@ WORKDIR ${TARGET_DIR}
 ADD ${DIST} .
 RUN mv /imageService/*.jar /imageService/imageservice.jar
 RUN mkdir images
-ENTRYPOINT [ "java", "-jar", "/imageService/imageservice.jar", "/images","8080" ]
+EXPOSE 8080
+ENTRYPOINT [ "java", "-jar", "/imageService/imageservice.jar", "/images", "8080" ]
 
