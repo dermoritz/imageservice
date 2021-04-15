@@ -13,8 +13,8 @@
     <dependencies>
         <dependency>
             <groupId>org.jboss.weld.se</groupId>
-            <artifactId>weld-se</artifactId>
-            <version>3.1.1.Final</version>
+            <artifactId>weld-se-core</artifactId>
+            <version>3.1.7.Final</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -136,7 +136,8 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>2.1.1</version>
+            <version>2.2.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
