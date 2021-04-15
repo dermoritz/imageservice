@@ -52,6 +52,7 @@ public class ImageFromFolder implements ImageProvider, Processor {
     private static final PathMatcher IMAGE_FILE_PATTERN = FileSystems.getDefault()
                                                                      .getPathMatcher("glob:*.{jpg,jpeg,png,gif,bmp}");
     public static final String UPDATE_RESULT_HEADER = "UPDATE_RESULT";
+    public static final String UPDATE_YIELD = "UPDATE_YIELD";
     private final Provider<Random> randomProvider;
     private volatile Statistic statistic;
     private List<File> folders;
@@ -135,10 +136,12 @@ public class ImageFromFolder implements ImageProvider, Processor {
         fetchAllFiles();
         // wait for result
         waitUntilFinished();
-        String message = "Update yielded " + (files.size() - oldFileCount) + " files. Total file count now: "
+        int change = files.size() - oldFileCount;
+        String message = "Update yielded " + change + " files. Total file count now: "
                          + files.size();
         log.info(message);
         exchange.getIn().setHeader( UPDATE_RESULT_HEADER,message );
+        exchange.getIn().setHeader(UPDATE_YIELD, change);
         exchange.getIn().setBody(files);
     }
 
