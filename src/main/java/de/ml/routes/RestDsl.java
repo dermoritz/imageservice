@@ -26,7 +26,7 @@ public class RestDsl extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         restConfiguration().component("restlet")
-                .host("localhost")
+                .host("0.0.0.0")
                 .contextPath("/swaggered")
                 .port(port)
                 .apiContextPath("/api-doc")

@@ -214,8 +214,9 @@ public class RestEndpointsProvider implements RestEndpoints {
     }
 
     private Endpoint getRestEndpoint(String path) {
-        RestletEndpoint endpoint = context.getEndpoint("restlet:http://localhost" + path, RestletEndpoint.class);
+        RestletEndpoint endpoint = context.getEndpoint("restlet:" + path, RestletEndpoint.class);
         endpoint.setRestletMethod(Method.GET);
+        endpoint.setHost("0.0.0.0");
         endpoint.setPort(port);
         endpoint.setRestletRealm(users);
         return endpoint;
