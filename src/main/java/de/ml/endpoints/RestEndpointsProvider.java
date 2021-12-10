@@ -4,7 +4,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import de.ml.statistic.StatisticImpl;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.component.restlet.RestletComponent;
@@ -15,6 +14,7 @@ import com.google.common.base.Preconditions;
 
 import de.ml.boot.AllowedUserProvider.AllowedUsers;
 import de.ml.boot.ArgsConfiguration.Port;
+import de.ml.statistic.StatisticImpl;
 
 public class RestEndpointsProvider implements RestEndpoints {
 
@@ -217,6 +217,7 @@ public class RestEndpointsProvider implements RestEndpoints {
         RestletEndpoint endpoint = context.getEndpoint("restlet:" + path, RestletEndpoint.class);
         endpoint.setRestletMethod(Method.GET);
         endpoint.setHost("0.0.0.0");
+        endpoint.setProtocol("http");
         endpoint.setPort(port);
         endpoint.setRestletRealm(users);
         return endpoint;

@@ -10,6 +10,13 @@
         <log4j.version>2.15.0</log4j.version>
         <maven.compiler.release>11</maven.compiler.release>
     </properties>
+    <repositories>
+        <repository>
+            <id>maven.restlet.org</id>
+            <name>maven.restlet.org</name>
+            <url>http://maven.restlet.org</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.jboss.weld.se</groupId>

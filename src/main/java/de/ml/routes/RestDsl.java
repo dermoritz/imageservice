@@ -1,11 +1,12 @@
 package de.ml.routes;
 
-import de.ml.boot.ArgsConfiguration.Port;
-import de.ml.processors.SendFile;
+import javax.inject.Inject;
+
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 
-import javax.inject.Inject;
+import de.ml.boot.ArgsConfiguration.Port;
+import de.ml.processors.SendFile;
 
 /**
  * Created by moritz on 01.01.2017.
@@ -25,16 +26,16 @@ public class RestDsl extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        restConfiguration().component("restlet")
-                .host("0.0.0.0")
-                .contextPath("/swaggered")
-                .port(port)
-                .apiContextPath("/api-doc")
-                .apiProperty("api.title", "Imageservice REST Api");
-
-        rest("/image")
-                .get("/next").description("Returns random image.").to(DIRECT_NEXT);
-
-        from(DIRECT_NEXT).process(sendFile);
+//        restConfiguration().component("restlet")
+//                .host("localhost")
+//                .contextPath("/swaggered")
+//                .port(port)
+//                .apiContextPath("/api-doc")
+//                .apiProperty("api.title", "Imageservice REST Api");
+//
+//        rest("/image")
+//                .get("/next").description("Returns random image.").to(DIRECT_NEXT);
+//
+//        from(DIRECT_NEXT).process(sendFile);
     }
 }

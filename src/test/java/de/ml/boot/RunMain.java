@@ -1,8 +1,8 @@
 package de.ml.boot;
 
-import org.junit.Test;
+import static de.ml.boot.Util.getFolderOfResourceFolder;
 
-import static de.ml.boot.Util.*;
+import org.junit.Test;
 
 public class RunMain {
 
@@ -13,7 +13,7 @@ public class RunMain {
 
     @Test
     public void runWithFolder() {
-        org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1\\imageService\\examples2","8080"});
+        org.jboss.weld.environment.se.StartMain.main(new String[] {"C:\\Users\\moritz\\Downloads\\1\\imageService\\examples1","8080"});
     }
 
 }
