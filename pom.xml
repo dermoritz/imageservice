@@ -7,7 +7,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <camel.version>2.24.1</camel.version>
-        <log4j.version>2.14.1</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <maven.compiler.release>11</maven.compiler.release>
     </properties>
     <dependencies>
