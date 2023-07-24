@@ -14,7 +14,7 @@
         <repository>
             <id>maven.restlet.org</id>
             <name>maven.restlet.org</name>
-            <url>http://maven.restlet.org</url>
+            <url>https://maven.restlet.talend.com</url>
         </repository>
     </repositories>
     <dependencies>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.2</version>
+			<version>1.18.28</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
